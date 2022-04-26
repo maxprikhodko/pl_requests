@@ -1,11 +1,22 @@
 create or replace
 type body pl_request
 is
-  constructor function pl_request( base_url varchar2 )
+  constructor function pl_request( base_url        varchar2
+                                 , wallet_path     varchar2
+                                                   default null
+                                 , wallet_password varchar2
+                                                   default null )
                                    return self as result
   is
   begin
     self.base_url := base_url;
+
+    if wallet_path is not null and wallet_password is not null
+    then
+      self.wallet_path     := wallet_path;
+      self.wallet_password := wallet_password;
+    end if;
+    
     return;
   end pl_request;
 

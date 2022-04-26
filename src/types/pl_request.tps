@@ -1,10 +1,16 @@
 create or replace
 type pl_request is object
 (
-    base_url varchar2(2048)
-  , headers  pl_request_headers
+    base_url        varchar2(2048)
+  , wallet_path     varchar2(2048)
+  , wallet_password varchar2(2048)
+  , headers         pl_request_headers
 
-  , constructor function pl_request( base_url varchar2 )
+  , constructor function pl_request( base_url        varchar2
+                                   , wallet_path     varchar2
+                                                     default null
+                                   , wallet_password varchar2
+                                                     default null )
                                      return self as result
     /**
      * Returns global header for stored request
