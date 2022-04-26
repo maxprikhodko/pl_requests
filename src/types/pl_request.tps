@@ -35,5 +35,17 @@ type pl_request is object
   , member function resolve( target varchar2
                                     default null )
                              return varchar2
+
+    /**
+     * Executes HTTP request
+     * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+     * @param url relative url
+     * @param status response status output
+     * @param body response body output
+     */
+  , member procedure request( method in            varchar2
+                            , url    in            varchar2
+                            , status in out nocopy number
+                            , body   in out nocopy varchar2 )
 )
 /
