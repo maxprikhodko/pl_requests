@@ -2,6 +2,26 @@ create or replace
 package body pl_requests
 is
   /**
+   * Reads response body as text into string variable
+   * @param res response object
+   * @param body destination 
+   */
+  procedure get_body( res  in out nocopy utl_http.resp
+                    , body in out nocopy varchar2 )
+  is
+    l_buffer varchar2(4000);
+  begin
+    body := null;
+    loop
+      utl_http.read_line( res, l_buffer );
+      body := body || l_buffer;
+    end loop;
+  exception
+    when utl_http.end_of_body then
+      null;
+  end get_body;
+
+  /**
    * Reads response body into blob
    * @param res response object
    * @param body destination 

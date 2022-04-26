@@ -2,6 +2,14 @@ create or replace
 package pl_requests
 is
   /**
+   * Reads response body as text into string variable
+   * @param res response object
+   * @param body destination 
+   */
+  procedure get_body( res  in out nocopy utl_http.resp
+                    , body in out nocopy varchar2 );
+  
+  /**
    * Reads response body into blob
    * @param res response object
    * @param body destination 
