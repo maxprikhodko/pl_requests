@@ -2,6 +2,59 @@ create or replace
 package body pl_requests
 is
   /**
+   * Execute http request
+   * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+   * @param url target url
+   * @param res_status response status storage
+   * @param res_body response body storage
+   * @param ctx (optional) request context key
+   */
+  procedure request( method     in            varchar2
+                   , url        in            varchar2
+                   , res_status in out nocopy number
+                   , res_body   in out nocopy varchar2
+                   , ctx        in            utl_http.request_context_key
+                                              default null )
+  is
+    f_REQ_OPENED boolean := false;
+    f_RES_OPENED boolean := false;
+    req utl_http.req;
+    res utl_http.resp;
+  begin
+    req := utl_http.begin_request( method          => upper( method )
+                                 , url             => url
+                                 , request_context => ctx );
+    f_REQ_OPENED := true;
+
+    -- TODO: set headers
+    -- TODO: set body
+
+    res          := utl_http.get_response( req );
+    f_REQ_OPENED := false;
+    f_RES_OPENED := true;
+    res_status   := res.status_code;
+
+    -- TODO: fetch response headers
+
+    -- TODO: optionally skip body reading on some codes
+    get_body( res  => res
+            , body => res_body );
+    
+    utl_http.end_response( res );
+    f_RES_OPENED := false;
+  exception
+    when OTHERS then
+      if f_RES_OPENED
+      then
+        utl_http.end_response( res );
+      elsif f_REQ_OPENED
+      then
+        utl_http.end_request( req );
+      end if;
+      raise;
+  end request;
+  
+  /**
    * Reads response body as text into string variable
    * @param res response object
    * @param body destination 

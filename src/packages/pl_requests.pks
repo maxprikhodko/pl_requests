@@ -2,6 +2,21 @@ create or replace
 package pl_requests
 is
   /**
+   * Execute http request
+   * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+   * @param url target url
+   * @param res_status response status storage
+   * @param res_body response body storage
+   * @param ctx (optional) request context key
+   */
+  procedure request( method     in            varchar2
+                   , url        in            varchar2
+                   , res_status in out nocopy number
+                   , res_body   in out nocopy varchar2
+                   , ctx        in            utl_http.request_context_key
+                                              default null );
+
+  /**
    * Reads response body as text into string variable
    * @param res response object
    * @param body destination 
