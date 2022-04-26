@@ -5,16 +5,19 @@ is
    * Execute http request
    * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
    * @param url target url
+   * @param req_headers (optional) request headers
    * @param res_status response status storage
    * @param res_body response body storage
    * @param ctx (optional) request context key
    */
-  procedure request( method     in            varchar2
-                   , url        in            varchar2
-                   , res_status in out nocopy number
-                   , res_body   in out nocopy varchar2
-                   , ctx        in            utl_http.request_context_key
-                                              default null );
+  procedure request( method      in            varchar2
+                   , url         in            varchar2
+                   , req_headers in            pl_request_headers
+                                               default null
+                   , res_status  in out nocopy number
+                   , res_body    in out nocopy varchar2
+                   , ctx         in            utl_http.request_context_key
+                                               default null );
 
   /**
    * Reads response body as text into string variable
@@ -32,6 +35,14 @@ is
   procedure get_body( res  in out nocopy utl_http.resp
                     , body in out nocopy blob );
   
+  /**
+   * Sets request headers
+   * @param req request object
+   * @param headers headers collection
+   */
+  procedure set_headers( req     in out nocopy utl_http.req
+                       , headers in            pl_request_headers );
+
   /**
    * Sets request body from string
    * @param req request object

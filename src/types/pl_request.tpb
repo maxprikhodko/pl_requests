@@ -85,11 +85,12 @@ is
                                             , wallet_password => self.wallet_password );
     end if;
 
-    pl_requests.request( method     => method
-                       , url        => self.resolve( url )
-                       , res_status => status
-                       , res_body   => body
-                       , ctx        => ctx );
+    pl_requests.request( method      => method
+                       , url         => self.resolve( url )
+                       , req_headers => self.headers
+                       , res_status  => status
+                       , res_body    => body
+                       , ctx         => ctx );
     
     if ctx is not null
     then

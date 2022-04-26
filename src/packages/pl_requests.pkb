@@ -5,16 +5,19 @@ is
    * Execute http request
    * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
    * @param url target url
+   * @param req_headers (optional) request headers
    * @param res_status response status storage
    * @param res_body response body storage
    * @param ctx (optional) request context key
    */
-  procedure request( method     in            varchar2
-                   , url        in            varchar2
-                   , res_status in out nocopy number
-                   , res_body   in out nocopy varchar2
-                   , ctx        in            utl_http.request_context_key
-                                              default null )
+  procedure request( method      in            varchar2
+                   , url         in            varchar2
+                   , req_headers in            pl_request_headers
+                                               default null
+                   , res_status  in out nocopy number
+                   , res_body    in out nocopy varchar2
+                   , ctx         in            utl_http.request_context_key
+                                               default null )
   is
     f_REQ_OPENED boolean := false;
     f_RES_OPENED boolean := false;
@@ -26,7 +29,13 @@ is
                                  , request_context => ctx );
     f_REQ_OPENED := true;
 
-    -- TODO: set headers
+    -- Set request headers if specified
+    if req_headers is not null
+    then
+      set_headers( req     => req
+                 , headers => req_headers );
+    end if;
+
     -- TODO: set body
 
     res          := utl_http.get_response( req );
@@ -73,6 +82,27 @@ is
     when utl_http.end_of_body then
       null;
   end get_body;
+
+  /**
+   * Sets request headers
+   * @param req request object
+   * @param headers headers collection
+   */
+  procedure set_headers( req     in out nocopy utl_http.req
+                       , headers in            pl_request_headers )
+  is
+  begin
+    if headers is not null and headers.count > 0
+    then
+      for header in ( select h."NAME"
+                           , h."VALUE"
+                        from table( headers ) h
+                       where h."VALUE" is not null )
+      loop
+        utl_http.set_header( req, header."NAME", header."VALUE" );
+      end loop;
+    end if;
+  end set_headers;
 
   /**
    * Reads response body into blob
