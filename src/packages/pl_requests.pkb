@@ -76,7 +76,7 @@ is
   begin
     if headers is null
     then
-      headers := pl_request_headers;
+      headers := pl_request_headers();
     end if;
 
     for i in 1 .. utl_http.get_header_count( res )
