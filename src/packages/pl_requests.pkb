@@ -64,6 +64,35 @@ is
   end request;
   
   /**
+   * Collects all response headers from response to headers collection
+   * @param res response object
+   * @param headers destination headers collection
+   */
+  procedure get_headers( res     in out nocopy utl_http.resp
+                       , headers in out nocopy pl_request_headers )
+  is
+    l_name  varchar2(256);
+    l_value varchar2(4000);
+  begin
+    if headers is null
+    then
+      headers := pl_request_headers;
+    end if;
+
+    for i in 1 .. utl_http.get_header_count( res )
+    loop
+      begin
+        utl_http.get_header( res, i, l_name, l_value );
+        headers.extend();
+        headers(headers.last) := pl_request_header( l_name, l_value );
+      exception
+        when OTHERS then 
+          continue;
+      end;
+    end loop;
+  end get_headers;
+
+  /**
    * Reads response body as text into string variable
    * @param res response object
    * @param body destination 

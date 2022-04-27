@@ -20,6 +20,14 @@ is
                                                default null );
 
   /**
+   * Collects all response headers from response to headers collection
+   * @param res response object
+   * @param headers destination headers collection
+   */
+  procedure get_headers( res     in out nocopy utl_http.resp
+                       , headers in out nocopy pl_request_headers );
+
+  /**
    * Reads response body as text into string variable
    * @param res response object
    * @param body destination 
