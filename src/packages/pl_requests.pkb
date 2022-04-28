@@ -62,6 +62,125 @@ is
       end if;
       raise;
   end request;
+
+  /**
+   * Executes http request
+   * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+   * @param url target url
+   * @param res_headers output response headers storage
+   * @param res_status output response status
+   * @param res_body output response body clob
+   * @param ctx (default null) request context key
+   * @param req_headers (default null) request headers to be set
+   * @param req_data (default null) request data clob to be sent in body
+   * @param charset (default 'UTF-8') charset to be used for request and response bodies
+   */
+  procedure request( method      in            varchar2
+                   , url         in            varchar2
+                   , res_headers in out nocopy pl_request_headers
+                   , res_status  in out nocopy number
+                   , res_body    in out nocopy clob
+                   , ctx         in            utl_http.request_context_key
+                                               default null
+                   , req_headers in            pl_request_headers
+                                               default null
+                   , req_data    in            clob
+                                               default null
+                   , charset     in            varchar2
+                                               default gc_DEFAULT_CHARSET )
+  is
+    f_REQ_OPENED boolean := false;
+    f_RES_OPENED boolean := false;
+    req utl_http.req;
+    res utl_http.resp;
+  begin
+    req := utl_http.begin_request( method          => upper( method )
+                                 , url             => url
+                                 , request_context => ctx );
+    f_REQ_OPENED := true;
+
+    if req_headers is not null
+    then
+      set_headers( req     => req
+                 , headers => req_headers );
+    end if;
+
+    res          := utl_http.get_response( req );
+    f_REQ_OPENED := false;
+    f_RES_OPENED := true;
+    res_status   := res.status_code;
+
+    get_headers( res     => res
+               , headers => res_headers );
+
+    get_body( res     => res
+            , body    => res_body
+            , charset => charset );
+    
+    utl_http.end_response( res );
+    f_RES_OPENED := false;
+  exception
+    when OTHERS then
+      if f_RES_OPENED 
+      then
+        utl_http.end_response( res );
+      elsif f_REQ_OPENED
+      then
+        utl_http.end_request( req );  
+      end if;
+      raise;
+  end request;
+
+  /**
+   * Executes http request
+   * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+   * @param url target url
+   * @param res_headers output response headers storage
+   * @param res_status output response status
+   * @param res_body output response body text
+   * @param ctx (default null) request context key
+   * @param req_headers (default null) request headers to be set
+   * @param req_data (default null) request data text to be sent in body
+   * @param charset (default 'UTF-8') charset to be used for request and response bodies
+   */
+  procedure request( method      in            varchar2
+                   , url         in            varchar2
+                   , res_headers in out nocopy pl_request_headers
+                   , res_status  in out nocopy number
+                   , res_body    in out nocopy varchar2
+                   , ctx         in            utl_http.request_context_key
+                                               default null
+                   , req_headers in            pl_request_headers
+                                               default null
+                   , req_data    in            varchar2
+                                               default null
+                   , charset     in            varchar2
+                                               default gc_DEFAULT_CHARSET )
+  is
+    l_res_body clob;
+  begin
+    res_body := null;
+    dbms_lob.createTemporary( lob_loc => l_res_body
+                            , cache   => true
+                            , dur     => dbms_lob.CALL );
+    
+    request( method      => method
+           , url         => url
+           , ctx         => ctx
+           , charset     => charset
+           , req_headers => req_headers
+           , req_data    => to_clob( req_data )
+           , res_headers => res_headers
+           , res_status  => res_status
+           , res_body    => l_res_body );
+    
+    res_body := l_res_body;
+    dbms_lob.freeTemporary( l_res_body );
+  exception
+    when OTHERS then
+      dbms_lob.freeTemporary( l_res_body );
+      raise;
+  end request;
   
   /**
    * Collects all response headers from response to headers collection
@@ -93,15 +212,55 @@ is
   end get_headers;
 
   /**
+   * Reads response body into a clob variable
+   * @param res response object
+   * @param body output clob (must be allocated before call)
+   * @param charset (default 'UTF-8') body charset
+   */
+  procedure get_body( res     in out nocopy utl_http.resp
+                    , body    in out nocopy clob
+                    , charset in            varchar2
+                                            default gc_DEFAULT_CHARSET )
+  is
+    l_buffer varchar2(32767);
+  begin
+    if charset is not null
+    then
+      utl_http.set_body_charset( r       => res
+                               , charset => charset );
+    end if;
+
+    loop
+      utl_http.read_text( r    => res
+                        , data => l_buffer );
+      dbms_lob.writeAppend( lob_loc => body
+                          , amount  => length( l_buffer )
+                          , buffer  => l_buffer );
+    end loop;
+  exception
+    when utl_http.end_of_body then
+      null;
+  end get_body;
+
+  /**
    * Reads response body as text into string variable
    * @param res response object
-   * @param body destination 
+   * @param body output buffer 
+   * @param charset (default 'UTF-8') body charset
    */
-  procedure get_body( res  in out nocopy utl_http.resp
-                    , body in out nocopy varchar2 )
+  procedure get_body( res     in out nocopy utl_http.resp
+                    , body    in out nocopy varchar2
+                    , charset in            varchar2
+                                            default gc_DEFAULT_CHARSET )
   is
     l_buffer varchar2(4000);
   begin
+    if charset is not null
+    then
+      utl_http.set_body_charset( r       => res
+                               , charset => charset );
+    end if;
+
     body := null;
     loop
       utl_http.read_line( res, l_buffer );
