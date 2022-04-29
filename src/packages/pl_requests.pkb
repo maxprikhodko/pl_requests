@@ -1,6 +1,94 @@
 create or replace
 package body pl_requests
 is
+  g_DB_CHARSET nls_database_parameters."VALUE"%TYPE;
+
+  /**
+   * Converts custom charset alias to specific character set to be used
+   * @param charset custom charset alias
+   * @return db charset name on success, otherwise initial value is returned
+   */
+  function convert_charset_name( charset in varchar2 )
+                                 return nls_database_parameters."VALUE"%TYPE
+  is
+  begin
+    return (
+      case 
+        when upper( charset ) = 'UTF-8'
+          then 'AL32UTF8'
+        else 
+          charset
+      end
+    );
+  end convert_charset_name;
+
+  /**
+   * Calculates content length for clob
+   * @param body clob value
+   * @param request charset to be used
+   * @return content length in bytes
+   */
+  function calc_content_length( body    in clob
+                              , charset in varchar2
+                                           default gc_DEFAULT_CHARSET )
+                                return number
+  is
+    c_CHUNK          constant number := 4000;
+    l_length                  number := 0;
+    l_offset                  number := 1;
+    l_content_length          number := 0;
+    l_charset                 nls_database_parameters."VALUE"%TYPE;
+  begin
+    if body is not null then
+      l_charset := convert_charset_name( charset );
+      l_length  := nvl( dbms_lob.getLength( body ), 0 );
+
+      while l_offset <= l_length
+      loop
+        l_content_length := l_content_length + (
+          case 
+            when nvl( l_charset, g_DB_CHARSET ) = g_DB_CHARSET then
+              lengthb( dbms_lob.substr( body, c_CHUNK, l_offset ) )
+            else
+              lengthb( 
+                convert( dbms_lob.substr( body, c_CHUNK, l_offset )
+                       , l_charset ) 
+              )
+          end 
+        );
+        l_offset := l_offset + c_CHUNK;
+      end loop;
+    end if;
+
+    return l_content_length;
+  end calc_content_length;
+
+  /**
+   * Calculates content length for varchar2
+   * @param body string value
+   * @param request charset to be used
+   * @return content length in bytes
+   */
+  function calc_content_length( body    in varchar2
+                              , charset in varchar2
+                                           default gc_DEFAULT_CHARSET )
+                                return number
+  is
+    l_charset nls_database_parameters."VALUE"%TYPE;
+  begin
+    l_charset := convert_charset_name( charset );
+    return (
+      case 
+        when body is null then 
+          0
+        when nvl( l_charset, g_DB_CHARSET ) = g_DB_CHARSET then
+          lengthb( body )
+        else 
+          lengthb( convert( body, l_charset ) )
+      end
+    );
+  end calc_content_length;
+
   /**
    * Execute http request
    * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
@@ -74,6 +162,7 @@ is
    * @param req_headers (default null) request headers to be set
    * @param req_data (default null) request data clob to be sent in body
    * @param charset (default 'UTF-8') charset to be used for request and response bodies
+   * @param chunked (default false) force Transfer-Encoding: chunked
    */
   procedure request( method      in            varchar2
                    , url         in            varchar2
@@ -87,7 +176,9 @@ is
                    , req_data    in            clob
                                                default null
                    , charset     in            varchar2
-                                               default gc_DEFAULT_CHARSET )
+                                               default gc_DEFAULT_CHARSET
+                   , chunked     in            boolean
+                                               default false )
   is
     f_REQ_OPENED boolean := false;
     f_RES_OPENED boolean := false;
@@ -103,6 +194,17 @@ is
     then
       set_headers( req     => req
                  , headers => req_headers );
+    end if;
+
+    if req_data is not null
+    or method = 'POST'
+    then
+      -- Theoretically, it's POSSIBLE to send body with HTTP GET
+      -- On the other hand, HTTP POST always requires data sent in body
+      set_body( req     => req
+              , body    => req_data
+              , charset => charset
+              , chunked => chunked );
     end if;
 
     res          := utl_http.get_response( req );
@@ -142,6 +244,7 @@ is
    * @param req_headers (default null) request headers to be set
    * @param req_data (default null) request data text to be sent in body
    * @param charset (default 'UTF-8') charset to be used for request and response bodies
+   * @param chunked (default false) force Transfer-Encoding: chunked
    */
   procedure request( method      in            varchar2
                    , url         in            varchar2
@@ -155,7 +258,9 @@ is
                    , req_data    in            varchar2
                                                default null
                    , charset     in            varchar2
-                                               default gc_DEFAULT_CHARSET )
+                                               default gc_DEFAULT_CHARSET
+                   , chunked     in            boolean
+                                               default false )
   is
     l_res_body clob;
   begin
@@ -222,7 +327,7 @@ is
                     , charset in            varchar2
                                             default gc_DEFAULT_CHARSET )
   is
-    l_buffer varchar2(32767);
+    l_chunk varchar2(32767);
   begin
     if charset is not null
     then
@@ -232,10 +337,10 @@ is
 
     loop
       utl_http.read_text( r    => res
-                        , data => l_buffer );
+                        , data => l_chunk );
       dbms_lob.writeAppend( lob_loc => body
-                          , amount  => length( l_buffer )
-                          , buffer  => l_buffer );
+                          , amount  => length( l_chunk )
+                          , buffer  => l_chunk );
     end loop;
   exception
     when utl_http.end_of_body then
@@ -253,7 +358,7 @@ is
                     , charset in            varchar2
                                             default gc_DEFAULT_CHARSET )
   is
-    l_buffer varchar2(4000);
+    l_chunk varchar2(32767);
   begin
     if charset is not null
     then
@@ -263,8 +368,8 @@ is
 
     body := null;
     loop
-      utl_http.read_line( res, l_buffer );
-      body := body || l_buffer;
+      utl_http.read_line( res, l_chunk );
+      body := body || l_chunk;
     end loop;
   exception
     when utl_http.end_of_body then
@@ -279,12 +384,11 @@ is
   procedure get_body( res  in out nocopy utl_http.resp
                     , body in out nocopy blob )
   is
-    lc_CHUNK_SIZE constant number := 2048;
-    l_buffer               raw(2048);
+    l_chunk raw(32767);
   begin
     loop
-      utl_http.read_raw( res, l_buffer, lc_CHUNK_SIZE );
-      dbms_lob.writeAppend( body, utl_raw.length( l_buffer ), l_buffer );
+      utl_http.read_raw( res, l_chunk, gc_CHUNK_SIZE );
+      dbms_lob.writeAppend( body, utl_raw.length( l_chunk ), l_chunk );
     end loop;
   exception
     when utl_http.end_of_body then
@@ -316,46 +420,145 @@ is
    * Sets request body from string
    * @param req request object
    * @param body string body to set
+   * @param charset (default 'UTF-8') request body charset to use
+   * @param chunked (default false) force Transfer-Encoding: chunked
    */
-  procedure set_body( req  in out nocopy utl_http.req
-                    , body in            varchar2 )
+  procedure set_body( req     in out nocopy utl_http.req
+                    , body    in            clob
+                    , charset in            varchar2
+                                            default gc_DEFAULT_CHARSET
+                    , chunked in            boolean
+                                            default false )
   is
+    l_offset number := 1;
+    l_length number := 0;
+    l_bytes  number := 0;
   begin
-    utl_http.set_header( req, 'Content-Length', to_char(lengthb(body)) );
-    utl_http.write_text( req, body );
+    l_length := nvl( dbms_lob.getLength( body ), 0 );
+    l_bytes  := calc_content_length( body    => body
+                                   , charset => charset );
+    
+    if charset is not null
+    then
+      utl_http.set_body_charset( r       => req
+                               , charset => charset );
+    end if;
+
+    if nvl( chunked, false )
+    or l_bytes > gc_CHUNK_MAX_BYTES
+    then
+      utl_http.set_header( req, 'Transfer-Encoding', 'chunked' );
+      
+      declare
+        l_chunk varchar2(32767);
+      begin
+        while l_offset <= l_length
+        loop
+          l_chunk := dbms_lob.substr( lob_loc => body
+                                    , amount  => gc_CHUNK_SIZE
+                                    , offset  => l_offset );
+          l_offset := l_offset + length( l_chunk );
+          utl_http.write_text( req, l_chunk );
+        end loop;
+      end;
+    else
+      utl_http.set_header( req, 'Content-Length', to_char(l_bytes) );
+      
+      if l_bytes > 0 then
+        utl_http.write_text( req, body );
+      end if;
+    end if;
+  end set_body;
+
+  /**
+   * Sets request body from string
+   * @param req request object
+   * @param body string body to set
+   * @param charset (default 'UTF-8') request body charset to use
+   * @param chunked (default false) force Transfer-Encoding: chunked
+   */
+  procedure set_body( req     in out nocopy utl_http.req
+                    , body    in            varchar2
+                    , charset in            varchar2
+                                            default gc_DEFAULT_CHARSET
+                    , chunked in            boolean
+                                            default false )
+  is
+    l_bytes number := 0;
+  begin
+    l_bytes := calc_content_length( body    => body
+                                  , charset => charset );
+    
+    if charset is not null
+    then
+      utl_http.set_body_charset( r       => req
+                               , charset => charset );
+    end if;
+
+    if chunked
+    then
+      utl_http.set_header( req, 'Transfer-Encoding', 'chunked' );
+    else
+      utl_http.set_header( req, 'Content-Length', to_char(l_bytes) );
+    end if;
+    
+    if l_bytes > 0
+    then
+      utl_http.write_text( req, body );
+    end if;
   end set_body;
   
   /**
    * Sets request body from blob
    * @param req request object
    * @param body blob body to set
+   * @param chunked (default false) force Transfer-Encoding: chunked
    */
-  procedure set_body( req  in out nocopy utl_http.req
-                    , body in            blob )
+  procedure set_body( req     in out nocopy utl_http.req
+                    , body    in            blob
+                    , chunked in            boolean
+                                            default false )
   is
-    lc_CHUNK_SIZE constant number := 32767;
-    l_length               number := 0;
+    l_bytes  number         := 0;
+    l_offset integer        := 1;
+    l_amount binary_integer := 0;
+    l_chunk  raw(32767);
   begin
-    l_length := dbms_lob.getLength( body );
-    utl_http.set_header( req, 'Content-Length', to_char(l_length) );
+    l_bytes := nvl( dbms_lob.getLength( body ), 0 );
 
-    if l_length <= lc_CHUNK_SIZE
+    if nvl( chunked, false )
+    or l_bytes > gc_CHUNK_MAX_BYTES
     then
-      utl_http.write_raw( req, body );
+      utl_http.set_header( req, 'Transfer-Encoding', 'chunked' );
     else
-      declare
-        l_offset integer := 0;
-        l_amount integer := 0;
-        l_buffer raw(32767);
-      begin
-        while l_offset < l_length
-        loop
-          dbms_lob.read( body, l_amount, l_offset, l_buffer );
-          utl_http.write_raw( req, l_buffer );
-          l_offset := l_offset + l_amount;
-        end loop;
-      end;
+      utl_http.set_header( req, 'Content-Length', to_char(l_bytes) );
+    end if;
+
+    if body is not null
+    then
+      while l_offset <= l_bytes
+      loop
+        dbms_lob.read( lob_loc => body
+                     , amount  => l_amount
+                     , offset  => l_offset
+                     , buffer  => l_chunk );
+        utl_http.write_raw( req, l_chunk );
+        l_offset := l_offset + l_amount;
+      end loop;
     end if;
   end set_body;
+
+-- Package init
+begin
+  -- Save database charset to a global variable
+  begin  
+    select ndp."VALUE"
+      into g_DB_CHARSET
+      from nls_database_parameters ndp
+     where ndp."PARAMETER" = 'NLS_CHARACTERSET';
+  exception
+    when OTHERS then
+      null;
+  end;
 end pl_requests;
 /
