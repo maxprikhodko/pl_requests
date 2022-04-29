@@ -272,6 +272,26 @@ is
   end get_body;
 
   /**
+   * Reads response body into blob
+   * @param res response object
+   * @param body destination 
+   */
+  procedure get_body( res  in out nocopy utl_http.resp
+                    , body in out nocopy blob )
+  is
+    lc_CHUNK_SIZE constant number := 2048;
+    l_buffer               raw(2048);
+  begin
+    loop
+      utl_http.read_raw( res, l_buffer, lc_CHUNK_SIZE );
+      dbms_lob.writeAppend( body, utl_raw.length( l_buffer ), l_buffer );
+    end loop;
+  exception
+    when utl_http.end_of_body then
+      null;
+  end get_body;
+
+  /**
    * Sets request headers
    * @param req request object
    * @param headers headers collection
@@ -291,26 +311,6 @@ is
       end loop;
     end if;
   end set_headers;
-
-  /**
-   * Reads response body into blob
-   * @param res response object
-   * @param body destination 
-   */
-  procedure get_body( res  in out nocopy utl_http.resp
-                    , body in out nocopy blob )
-  is
-    lc_CHUNK_SIZE constant number := 2048;
-    l_buffer               raw(2048);
-  begin
-    loop
-      utl_http.read_raw( res, l_buffer, lc_CHUNK_SIZE );
-      dbms_lob.writeAppend( body, utl_raw.length( l_buffer ), l_buffer );
-    end loop;
-  exception
-    when utl_http.end_of_body then
-      null;
-  end get_body;
 
   /**
    * Sets request body from string
