@@ -68,10 +68,13 @@ is
    * @param name header name
    * @param val header value
    * @param headers_storage target headers collection
+   * @param append (default false) appends header value to existing instance in collection
    */
   procedure set_header( name            in            varchar2
                       , val             in            varchar2
-                      , headers_storage in out nocopy pl_request_headers )
+                      , headers_storage in out nocopy pl_request_headers
+                      , append          in            boolean
+                                                      default false )
   is
   begin
     if headers_storage is null
@@ -85,7 +88,21 @@ is
       loop
         if upper( headers_storage(i)."NAME" ) = upper( name )
         then
-          headers_storage(i)."VALUE" := val;
+          if nvl( append, false ) and val is not null 
+          then
+            headers_storage(i)."VALUE" := substrb(
+              ( case 
+                  when headers_storage(i)."VALUE" is not null 
+                    then headers_storage(i)."VALUE" || ', ' || val
+                  else val
+                end )
+              , 1
+              , 4000
+            );
+          elsif not nvl( append, false )
+          then
+            headers_storage(i)."VALUE" := substrb( val, 1, 4000 );
+          end if;
           return;
         end if;
       end loop;
@@ -93,7 +110,7 @@ is
     
     headers_storage.extend();
     headers_storage(headers_storage.last) := pl_request_header( "NAME"  => name
-                                                              , "VALUE" => val );
+                                                              , "VALUE" => substrb( val, 1, 4000 ) );
   end set_header;
   
   /**

@@ -33,10 +33,13 @@ is
    * @param name header name
    * @param val header value
    * @param headers_storage target headers collection
+   * @param append (default false) appends header value to existing instance in collection
    */
   procedure set_header( name            in            varchar2
                       , val             in            varchar2
-                      , headers_storage in out nocopy pl_request_headers );
+                      , headers_storage in out nocopy pl_request_headers
+                      , append          in            boolean
+                                                      default false );
   
   /**
    * Returns header value from collection

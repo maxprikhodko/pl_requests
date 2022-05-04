@@ -307,10 +307,12 @@ is
     loop
       begin
         utl_http.get_header( res, i, l_name, l_value );
-        headers.extend();
-        headers(headers.last) := pl_request_header( l_name, l_value );
+        pl_requests_helpers.set_header( name            => l_name
+                                      , val             => l_value
+                                      , headers_storage => headers
+                                      , append          => true );
       exception
-        when OTHERS then 
+        when OTHERS then
           continue;
       end;
     end loop;
