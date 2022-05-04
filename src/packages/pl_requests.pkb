@@ -90,66 +90,57 @@ is
   end calc_content_length;
 
   /**
-   * Execute http request
-   * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
-   * @param url target url
-   * @param req_headers (optional) request headers
-   * @param res_status response status storage
-   * @param res_body response body storage
-   * @param ctx (optional) request context key
+   * Prepares opened request and ends it with a response. 
+   * When a response is received, a request can not be closed.
+   * Received response must be closed manually.
+   * Closes request on raised exceptions.
+   * @param req opened request object
+   * @param res output response object
+   * @param opened output response opened flag
+   * @param headers (default null) request headers to set
+   * @param data (default null) request data to send
+   * @param charse (default 'UTF-8') request data charset
+   * @param chunked (default false) force Transfer-Encoding: chunked
    */
-  procedure request( method      in            varchar2
-                   , url         in            varchar2
-                   , req_headers in            pl_request_headers
-                                               default null
-                   , res_status  in out nocopy number
-                   , res_body    in out nocopy varchar2
-                   , ctx         in            utl_http.request_context_key
-                                               default null )
+  procedure fetch_response( req     in out nocopy utl_http.req
+                          , res     in out nocopy utl_http.resp
+                          , opened  in out nocopy boolean
+                          , headers in            pl_request_headers
+                                                  default null
+                          , data    in            clob
+                                                  default null
+                          , charset in            varchar2
+                                                  default gc_DEFAULT_CHARSET
+                          , chunked in            boolean
+                                                  default false )
   is
-    f_REQ_OPENED boolean := false;
-    f_RES_OPENED boolean := false;
-    req utl_http.req;
-    res utl_http.resp;
   begin
-    req := utl_http.begin_request( method          => upper( method )
-                                 , url             => url
-                                 , request_context => ctx );
-    f_REQ_OPENED := true;
+    opened := false;
 
-    -- Set request headers if specified
-    if req_headers is not null
+    if headers is not null
     then
       set_headers( req     => req
-                 , headers => req_headers );
+                 , headers => headers );
     end if;
 
-    -- TODO: set body
+    if data is not null
+    or upper( req.method ) = 'POST'
+    then
+      -- Theoretically, it's POSSIBLE to send body with HTTP GET
+      -- On the other hand, HTTP POST always requires data sent in body
+      set_body( req     => req
+              , body    => data
+              , charset => charset
+              , chunked => chunked );
+    end if;
 
-    res          := utl_http.get_response( req );
-    f_REQ_OPENED := false;
-    f_RES_OPENED := true;
-    res_status   := res.status_code;
-
-    -- TODO: fetch response headers
-
-    -- TODO: optionally skip body reading on some codes
-    get_body( res  => res
-            , body => res_body );
-    
-    utl_http.end_response( res );
-    f_RES_OPENED := false;
+    res    := utl_http.get_response( req );
+    opened := true;
   exception
     when OTHERS then
-      if f_RES_OPENED
-      then
-        utl_http.end_response( res );
-      elsif f_REQ_OPENED
-      then
-        utl_http.end_request( req );
-      end if;
+      utl_http.end_request( req );
       raise;
-  end request;
+  end fetch_response;
 
   /**
    * Executes http request
@@ -180,37 +171,23 @@ is
                    , chunked     in            boolean
                                                default false )
   is
-    f_REQ_OPENED boolean := false;
-    f_RES_OPENED boolean := false;
+    f_OPENED boolean := false;
     req utl_http.req;
     res utl_http.resp;
   begin
     req := utl_http.begin_request( method          => upper( method )
                                  , url             => url
                                  , request_context => ctx );
-    f_REQ_OPENED := true;
 
-    if req_headers is not null
-    then
-      set_headers( req     => req
-                 , headers => req_headers );
-    end if;
+    fetch_response( req     => req
+                  , res     => res
+                  , opened  => f_OPENED
+                  , headers => req_headers
+                  , data    => req_data
+                  , charset => charset
+                  , chunked => chunked );
 
-    if req_data is not null
-    or method = 'POST'
-    then
-      -- Theoretically, it's POSSIBLE to send body with HTTP GET
-      -- On the other hand, HTTP POST always requires data sent in body
-      set_body( req     => req
-              , body    => req_data
-              , charset => charset
-              , chunked => chunked );
-    end if;
-
-    res          := utl_http.get_response( req );
-    f_REQ_OPENED := false;
-    f_RES_OPENED := true;
-    res_status   := res.status_code;
+    res_status := res.status_code;
 
     get_headers( res     => res
                , headers => res_headers );
@@ -220,15 +197,70 @@ is
             , charset => charset );
     
     utl_http.end_response( res );
-    f_RES_OPENED := false;
+    f_OPENED := false;
   exception
     when OTHERS then
-      if f_RES_OPENED 
-      then
+      if f_OPENED then
         utl_http.end_response( res );
-      elsif f_REQ_OPENED
-      then
-        utl_http.end_request( req );  
+      end if;
+      raise;
+  end request;
+
+  /**
+   * Executes http request
+   * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+   * @param url target url
+   * @param res_status output response status
+   * @param res_body output response body clob
+   * @param ctx (default null) request context key
+   * @param req_headers (default null) request headers to be set
+   * @param req_data (default null) request data clob to be sent in body
+   * @param charset (default 'UTF-8') charset to be used for request and response bodies
+   * @param chunked (default false) force Transfer-Encoding: chunked
+   */
+  procedure request( method      in            varchar2
+                   , url         in            varchar2
+                   , res_status  in out nocopy number
+                   , res_body    in out nocopy clob
+                   , ctx         in            utl_http.request_context_key
+                                               default null
+                   , req_headers in            pl_request_headers
+                                               default null
+                   , req_data    in            clob
+                                               default null
+                   , charset     in            varchar2
+                                               default gc_DEFAULT_CHARSET
+                   , chunked     in            boolean
+                                               default false )
+  is
+    f_OPENED boolean := false;
+    req utl_http.req;
+    res utl_http.resp;
+  begin
+    req := utl_http.begin_request( method          => upper( method )
+                                 , url             => url
+                                 , request_context => ctx );
+
+    fetch_response( req     => req
+                  , res     => res
+                  , opened  => f_OPENED
+                  , headers => req_headers
+                  , data    => req_data
+                  , charset => charset
+                  , chunked => chunked );
+
+    res_status := res.status_code;
+
+    get_body( res     => res
+            , body    => res_body
+            , charset => charset );
+    
+    utl_http.end_response( res );
+    f_OPENED := false;
+  exception
+    when OTHERS then
+      if f_OPENED then
+        utl_http.end_response( res );
       end if;
       raise;
   end request;
@@ -276,6 +308,57 @@ is
            , req_headers => req_headers
            , req_data    => to_clob( req_data )
            , res_headers => res_headers
+           , res_status  => res_status
+           , res_body    => l_res_body );
+    
+    res_body := l_res_body;
+    dbms_lob.freeTemporary( l_res_body );
+  exception
+    when OTHERS then
+      dbms_lob.freeTemporary( l_res_body );
+      raise;
+  end request;
+
+  /**
+   * Executes http request
+   * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+   * @param url target url
+   * @param res_status output response status
+   * @param res_body output response body text
+   * @param ctx (default null) request context key
+   * @param req_headers (default null) request headers to be set
+   * @param req_data (default null) request data text to be sent in body
+   * @param charset (default 'UTF-8') charset to be used for request and response bodies
+   * @param chunked (default false) force Transfer-Encoding: chunked
+   */
+  procedure request( method      in            varchar2
+                   , url         in            varchar2
+                   , res_status  in out nocopy number
+                   , res_body    in out nocopy varchar2
+                   , ctx         in            utl_http.request_context_key
+                                               default null
+                   , req_headers in            pl_request_headers
+                                               default null
+                   , req_data    in            varchar2
+                                               default null
+                   , charset     in            varchar2
+                                               default gc_DEFAULT_CHARSET
+                   , chunked     in            boolean
+                                               default false )
+  is
+    l_res_body clob;
+  begin
+    res_body := null;
+    dbms_lob.createTemporary( lob_loc => l_res_body
+                            , cache   => true
+                            , dur     => dbms_lob.CALL );
+    
+    request( method      => method
+           , url         => url
+           , ctx         => ctx
+           , charset     => charset
+           , req_headers => req_headers
+           , req_data    => to_clob( req_data )
            , res_status  => res_status
            , res_body    => l_res_body );
     

@@ -6,24 +6,6 @@ is
   gc_CHUNK_SIZE      constant number       := 32767;
 
   /**
-   * Execute http request
-   * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
-   * @param url target url
-   * @param req_headers (optional) request headers
-   * @param res_status response status storage
-   * @param res_body response body storage
-   * @param ctx (optional) request context key
-   */
-  procedure request( method      in            varchar2
-                   , url         in            varchar2
-                   , req_headers in            pl_request_headers
-                                               default null
-                   , res_status  in out nocopy number
-                   , res_body    in out nocopy varchar2
-                   , ctx         in            utl_http.request_context_key
-                                               default null );
-
-  /**
    * Executes http request
    * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
    * @param url target url
@@ -56,6 +38,33 @@ is
    * Executes http request
    * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
    * @param url target url
+   * @param res_status output response status
+   * @param res_body output response body clob
+   * @param ctx (default null) request context key
+   * @param req_headers (default null) request headers to be set
+   * @param req_data (default null) request data clob to be sent in body
+   * @param charset (default 'UTF-8') charset to be used for request and response bodies
+   * @param chunked (default false) force Transfer-Encoding: chunked
+   */
+  procedure request( method      in            varchar2
+                   , url         in            varchar2
+                   , res_status  in out nocopy number
+                   , res_body    in out nocopy clob
+                   , ctx         in            utl_http.request_context_key
+                                               default null
+                   , req_headers in            pl_request_headers
+                                               default null
+                   , req_data    in            clob
+                                               default null
+                   , charset     in            varchar2
+                                               default gc_DEFAULT_CHARSET
+                   , chunked     in            boolean
+                                               default false );
+  
+  /**
+   * Executes http request
+   * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+   * @param url target url
    * @param res_headers output response headers storage
    * @param res_status output response status
    * @param res_body output response body text
@@ -68,6 +77,33 @@ is
   procedure request( method      in            varchar2
                    , url         in            varchar2
                    , res_headers in out nocopy pl_request_headers
+                   , res_status  in out nocopy number
+                   , res_body    in out nocopy varchar2
+                   , ctx         in            utl_http.request_context_key
+                                               default null
+                   , req_headers in            pl_request_headers
+                                               default null
+                   , req_data    in            varchar2
+                                               default null
+                   , charset     in            varchar2
+                                               default gc_DEFAULT_CHARSET
+                   , chunked     in            boolean
+                                               default false );
+  
+  /**
+   * Executes http request
+   * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+   * @param url target url
+   * @param res_status output response status
+   * @param res_body output response body text
+   * @param ctx (default null) request context key
+   * @param req_headers (default null) request headers to be set
+   * @param req_data (default null) request data text to be sent in body
+   * @param charset (default 'UTF-8') charset to be used for request and response bodies
+   * @param chunked (default false) force Transfer-Encoding: chunked
+   */
+  procedure request( method      in            varchar2
+                   , url         in            varchar2
                    , res_status  in out nocopy number
                    , res_body    in out nocopy varchar2
                    , ctx         in            utl_http.request_context_key
