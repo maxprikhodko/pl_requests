@@ -65,13 +65,18 @@ is
    * Executes HTTP request
    * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
    * @param url relative url
+   * @param headers response headers output
    * @param status response status output
    * @param body response body output
+   * @param data (default null) request data to send in body
    */
-  member procedure request( method in            varchar2
-                          , url    in            varchar2
-                          , status in out nocopy number
-                          , body   in out nocopy varchar2 )
+  member procedure request( method  in            varchar2
+                          , url     in            varchar2
+                          , headers in out nocopy pl_request_headers
+                          , status  in out nocopy number
+                          , body    in out nocopy varchar2
+                          , data    in            varchar2
+                                                  default null )
   is
     ctx utl_http.request_context_key := null;
   begin
@@ -88,6 +93,155 @@ is
     pl_requests.request( method      => method
                        , url         => self.resolve( url )
                        , req_headers => self.headers
+                       , req_data    => data
+                       , res_headers => headers
+                       , res_status  => status
+                       , res_body    => body
+                       , ctx         => ctx );
+    
+    if ctx is not null
+    then
+      utl_http.destroy_request_context( ctx );
+    end if;
+  exception
+    when OTHERS then
+      if ctx is not null
+      then
+        utl_http.destroy_request_context( ctx );
+      end if;
+      raise;
+  end request;
+  
+  /**
+   * Executes HTTP request
+   * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+   * @param url relative url
+   * @param status response status output
+   * @param body response body output
+   * @param data (default null) request data to send in body
+   */
+  member procedure request( method in            varchar2
+                          , url    in            varchar2
+                          , status in out nocopy number
+                          , body   in out nocopy varchar2
+                          , data   in            varchar2
+                                                 default null )
+  is
+    ctx utl_http.request_context_key := null;
+  begin
+    status := null;
+    body   := null;
+
+    if  self.wallet_path is not null 
+    and self.wallet_password is not null
+    then
+      ctx := utl_http.create_request_context( wallet_path     => self.wallet_path
+                                            , wallet_password => self.wallet_password );
+    end if;
+
+    pl_requests.request( method      => method
+                       , url         => self.resolve( url )
+                       , req_headers => self.headers
+                       , req_data    => data
+                       , res_status  => status
+                       , res_body    => body
+                       , ctx         => ctx );
+    
+    if ctx is not null
+    then
+      utl_http.destroy_request_context( ctx );
+    end if;
+  exception
+    when OTHERS then
+      if ctx is not null
+      then
+        utl_http.destroy_request_context( ctx );
+      end if;
+      raise;
+  end request;
+
+  /**
+   * Executes HTTP request
+   * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+   * @param url relative url
+   * @param headers response headers output
+   * @param status response status output
+   * @param body response body output
+   * @param data (default null) request data to send in body
+   */
+  member procedure request( method  in            varchar2
+                          , url     in            varchar2
+                          , headers in out nocopy pl_request_headers
+                          , status  in out nocopy number
+                          , body    in out nocopy clob
+                          , data    in            clob
+                                                  default null )
+  is
+    ctx utl_http.request_context_key := null;
+  begin
+    status := null;
+    body   := null;
+
+    if  self.wallet_path is not null 
+    and self.wallet_password is not null
+    then
+      ctx := utl_http.create_request_context( wallet_path     => self.wallet_path
+                                            , wallet_password => self.wallet_password );
+    end if;
+
+    pl_requests.request( method      => method
+                       , url         => self.resolve( url )
+                       , req_headers => self.headers
+                       , req_data    => data
+                       , res_headers => headers
+                       , res_status  => status
+                       , res_body    => body
+                       , ctx         => ctx );
+    
+    if ctx is not null
+    then
+      utl_http.destroy_request_context( ctx );
+    end if;
+  exception
+    when OTHERS then
+      if ctx is not null
+      then
+        utl_http.destroy_request_context( ctx );
+      end if;
+      raise;
+  end request;
+  
+  /**
+   * Executes HTTP request
+   * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+   * @param url relative url
+   * @param status response status output
+   * @param body response body output
+   * @param data (default null) request data to send in body
+   */
+  member procedure request( method in            varchar2
+                          , url    in            varchar2
+                          , status in out nocopy number
+                          , body   in out nocopy clob
+                          , data   in            clob
+                                                 default null )
+  is
+    ctx utl_http.request_context_key := null;
+  begin
+    status := null;
+    body   := null;
+
+    if  self.wallet_path is not null 
+    and self.wallet_password is not null
+    then
+      ctx := utl_http.create_request_context( wallet_path     => self.wallet_path
+                                            , wallet_password => self.wallet_password );
+    end if;
+
+    pl_requests.request( method      => method
+                       , url         => self.resolve( url )
+                       , req_headers => self.headers
+                       , req_data    => data
                        , res_status  => status
                        , res_body    => body
                        , ctx         => ctx );

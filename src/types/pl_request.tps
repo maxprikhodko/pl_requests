@@ -40,12 +40,65 @@ type pl_request is object
      * Executes HTTP request
      * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
      * @param url relative url
+     * @param headers response headers output
      * @param status response status output
      * @param body response body output
+     * @param data (default null) request data to send in body
+     */
+  , member procedure request( method  in            varchar2
+                            , url     in            varchar2
+                            , headers in out nocopy pl_request_headers
+                            , status  in out nocopy number
+                            , body    in out nocopy varchar2
+                            , data    in            varchar2
+                                                    default null )
+   
+    /**
+     * Executes HTTP request
+     * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+     * @param url relative url
+     * @param status response status output
+     * @param body response body output
+     * @param data (default null) request data to send in body
      */
   , member procedure request( method in            varchar2
                             , url    in            varchar2
                             , status in out nocopy number
-                            , body   in out nocopy varchar2 )
+                            , body   in out nocopy varchar2
+                            , data   in            varchar2
+                                                   default null )
+   
+    /**
+     * Executes HTTP request
+     * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+     * @param url relative url
+     * @param headers response headers output
+     * @param status response status output
+     * @param body response body output
+     * @param data (default null) request data to send in body
+     */
+  , member procedure request( method  in            varchar2
+                            , url     in            varchar2
+                            , headers in out nocopy pl_request_headers
+                            , status  in out nocopy number
+                            , body    in out nocopy clob
+                            , data    in            clob
+                                                    default null )
+   
+   
+    /**
+     * Executes HTTP request
+     * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+     * @param url relative url
+     * @param status response status output
+     * @param body response body output
+     * @param data (default null) request data to send in body
+     */
+  , member procedure request( method in            varchar2
+                            , url    in            varchar2
+                            , status in out nocopy number
+                            , body   in out nocopy clob
+                            , data   in            clob
+                                                   default null )
 )
 /
