@@ -50,5 +50,17 @@ is
   function get_header( name            in varchar2
                      , headers_storage in pl_request_headers )
                        return varchar2;
+
+  /**
+   * "Merges" two request headers storage into one.
+   * Header values present both in left and right will be overriden by value from right.
+   * @param l left storage
+   * @param r (default null) right storage
+   * @return merged storage
+   */
+  function merge_headers( l in pl_request_headers
+                        , r in pl_request_headers
+                               default null )
+                          return pl_request_headers;
 end pl_requests_helpers;
 /

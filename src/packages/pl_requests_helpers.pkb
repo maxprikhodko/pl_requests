@@ -143,5 +143,53 @@ is
 
     return l_value;
   end get_header;
+
+  /**
+   * "Merges" two request headers storage into one.
+   * Header values present both in left and right will be overriden by value from right.
+   * @param l left storage
+   * @param r (default null) right storage
+   * @return merged storage
+   */
+  function merge_headers( l in pl_request_headers
+                        , r in pl_request_headers
+                               default null )
+                          return pl_request_headers
+  is
+    headers pl_request_headers;
+  begin
+    if r is null or r.count = 0
+    then
+      return l;
+    elsif l is null or l.count = 0 
+    then
+      return r;  
+    end if;
+
+    with lh as (
+      select distinct st."NAME", st."VALUE" from table( l ) st
+       where st."VALUE" is not null
+    ), rh as (
+      select distinct st."NAME", st."VALUE" from table( r ) st
+    ), merged as (
+      select lh."NAME" 
+             as "NAME"
+           , ( case when rh."NAME" is null then lh."VALUE" else rh."VALUE" end )
+             as "VALUE"
+        from lh
+      left join rh on upper( lh."NAME" ) = upper( rh."NAME" )
+      union
+      select rh."NAME", rh."VALUE" 
+        from rh
+       where not exists ( select 't' from lh
+                           where upper( lh."NAME" ) = upper( rh."NAME" ) )
+    )
+    select pl_request_header( merged."NAME", merged."VALUE" )
+      bulk collect into headers
+      from merged
+     where merged."VALUE" is not null;
+
+    return headers;
+  end merge_headers;
 end pl_requests_helpers;
 /
