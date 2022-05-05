@@ -77,20 +77,24 @@ is
    * @param data (default null) request data to send in body
    * @param charset (default null) charset to be used for request and response bodies
    * @param chunked (default null) force Transfer-Encoding: chunked
+   * @param req_headers (default null) additional http headers
    */
-  member procedure request( method  in            varchar2
-                          , url     in            varchar2
-                          , headers in out nocopy pl_request_headers
-                          , status  in out nocopy number
-                          , body    in out nocopy varchar2
-                          , data    in            varchar2
-                                                  default null
-                          , charset in            varchar2
-                                                  default null
-                          , chunked in            boolean
-                                                  default null )
+  member procedure request( method      in            varchar2
+                          , url         in            varchar2
+                          , headers     in out nocopy pl_request_headers
+                          , status      in out nocopy number
+                          , body        in out nocopy varchar2
+                          , data        in            varchar2
+                                                      default null
+                          , charset     in            varchar2
+                                                      default null
+                          , chunked     in            boolean
+                                                      default null
+                          , req_headers in            pl_request_headers
+                                                      default null )
   is
-    ctx utl_http.request_context_key := null;
+    ctx       utl_http.request_context_key := null;
+    l_headers pl_request_headers;
   begin
     status := null;
     body   := null;
@@ -102,9 +106,17 @@ is
                                             , wallet_password => self.wallet_password );
     end if;
 
+    if  req_headers is not null
+    and req_headers.count > 0
+    then
+      l_headers := pl_requests_helpers.merge_headers( self.headers, req_headers );
+    else
+      l_headers := self.headers;
+    end if;
+
     pl_requests.request( method      => method
                        , url         => self.resolve( url )
-                       , req_headers => self.headers
+                       , req_headers => l_headers
                        , req_data    => data
                        , res_headers => headers
                        , res_status  => status
@@ -135,19 +147,23 @@ is
    * @param data (default null) request data to send in body
    * @param charset (default null) charset to be used for request and response bodies
    * @param chunked (default null) force Transfer-Encoding: chunked
+   * @param req_headers (default null) additional http headers
    */
-  member procedure request( method  in            varchar2
-                          , url     in            varchar2
-                          , status  in out nocopy number
-                          , body    in out nocopy varchar2
-                          , data    in            varchar2
-                                                  default null
-                          , charset in            varchar2
-                                                  default null
-                          , chunked in            boolean
-                                                  default null )
+  member procedure request( method      in            varchar2
+                          , url         in            varchar2
+                          , status      in out nocopy number
+                          , body        in out nocopy varchar2
+                          , data        in            varchar2
+                                                      default null
+                          , charset     in            varchar2
+                                                      default null
+                          , chunked     in            boolean
+                                                      default null
+                          , req_headers in            pl_request_headers
+                                                      default null )
   is
-    ctx utl_http.request_context_key := null;
+    ctx       utl_http.request_context_key := null;
+    l_headers pl_request_headers;
   begin
     status := null;
     body   := null;
@@ -159,9 +175,17 @@ is
                                             , wallet_password => self.wallet_password );
     end if;
 
+    if  req_headers is not null
+    and req_headers.count > 0
+    then
+      l_headers := pl_requests_helpers.merge_headers( self.headers, req_headers );
+    else
+      l_headers := self.headers;
+    end if;
+
     pl_requests.request( method      => method
                        , url         => self.resolve( url )
-                       , req_headers => self.headers
+                       , req_headers => l_headers
                        , req_data    => data
                        , res_status  => status
                        , res_body    => body
@@ -192,20 +216,24 @@ is
    * @param data (default null) request data to send in body
    * @param charset (default null) charset to be used for request and response bodies
    * @param chunked (default null) force Transfer-Encoding: chunked
+   * @param req_headers (default null) additional http headers
    */
-  member procedure request( method  in            varchar2
-                          , url     in            varchar2
-                          , headers in out nocopy pl_request_headers
-                          , status  in out nocopy number
-                          , body    in out nocopy clob
-                          , data    in            clob
-                                                  default null
-                          , charset in            varchar2
-                                                  default null
-                          , chunked in            boolean
-                                                  default null )
+  member procedure request( method      in            varchar2
+                          , url         in            varchar2
+                          , headers     in out nocopy pl_request_headers
+                          , status      in out nocopy number
+                          , body        in out nocopy clob
+                          , data        in            clob
+                                                      default null
+                          , charset     in            varchar2
+                                                      default null
+                          , chunked     in            boolean
+                                                      default null
+                          , req_headers in            pl_request_headers
+                                                      default null )
   is
-    ctx utl_http.request_context_key := null;
+    ctx       utl_http.request_context_key := null;
+    l_headers pl_request_headers;
   begin
     status := null;
     body   := null;
@@ -217,9 +245,17 @@ is
                                             , wallet_password => self.wallet_password );
     end if;
 
+    if  req_headers is not null
+    and req_headers.count > 0
+    then
+      l_headers := pl_requests_helpers.merge_headers( self.headers, req_headers );
+    else
+      l_headers := self.headers;
+    end if;
+
     pl_requests.request( method      => method
                        , url         => self.resolve( url )
-                       , req_headers => self.headers
+                       , req_headers => l_headers
                        , req_data    => data
                        , res_headers => headers
                        , res_status  => status
@@ -251,18 +287,21 @@ is
    * @param charset (default null) charset to be used for request and response bodies
    * @param chunked (default null) force Transfer-Encoding: chunked
    */
-  member procedure request( method  in            varchar2
-                          , url     in            varchar2
-                          , status  in out nocopy number
-                          , body    in out nocopy clob
-                          , data    in            clob
-                                                  default null
-                          , charset in            varchar2
-                                                  default null
-                          , chunked in            boolean
-                                                  default null )
+  member procedure request( method      in            varchar2
+                          , url         in            varchar2
+                          , status      in out nocopy number
+                          , body        in out nocopy clob
+                          , data        in            clob
+                                                      default null
+                          , charset     in            varchar2
+                                                      default null
+                          , chunked     in            boolean
+                                                      default null
+                          , req_headers in            pl_request_headers
+                                                      default null )
   is
-    ctx utl_http.request_context_key := null;
+    ctx       utl_http.request_context_key := null;
+    l_headers pl_request_headers;
   begin
     status := null;
     body   := null;
@@ -274,9 +313,17 @@ is
                                             , wallet_password => self.wallet_password );
     end if;
 
+    if  req_headers is not null
+    and req_headers.count > 0
+    then
+      l_headers := pl_requests_helpers.merge_headers( self.headers, req_headers );
+    else
+      l_headers := self.headers;
+    end if;
+
     pl_requests.request( method      => method
                        , url         => self.resolve( url )
-                       , req_headers => self.headers
+                       , req_headers => l_headers
                        , req_data    => data
                        , res_status  => status
                        , res_body    => body

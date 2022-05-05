@@ -52,18 +52,21 @@ type pl_request is object
      * @param data (default null) request data to send in body
      * @param charset (default null) charset to be used for request and response bodies
      * @param chunked (default null) force Transfer-Encoding: chunked
+     * @param req_headers (default null) additional http headers
      */
-  , member procedure request( method  in            varchar2
-                            , url     in            varchar2
-                            , headers in out nocopy pl_request_headers
-                            , status  in out nocopy number
-                            , body    in out nocopy varchar2
-                            , data    in            varchar2
-                                                    default null
-                            , charset in            varchar2
-                                                    default null
-                            , chunked in            boolean
-                                                    default null )
+  , member procedure request( method      in            varchar2
+                            , url         in            varchar2
+                            , headers     in out nocopy pl_request_headers
+                            , status      in out nocopy number
+                            , body        in out nocopy varchar2
+                            , data        in            varchar2
+                                                        default null
+                            , charset     in            varchar2
+                                                        default null
+                            , chunked     in            boolean
+                                                        default null
+                            , req_headers in            pl_request_headers
+                                                        default null )
    
     /**
      * Executes HTTP request
@@ -74,17 +77,20 @@ type pl_request is object
      * @param data (default null) request data to send in body
      * @param charset (default null) charset to be used for request and response bodies
      * @param chunked (default null) force Transfer-Encoding: chunked
+     * @param req_headers (default null) additional http headers
      */
-  , member procedure request( method  in            varchar2
-                            , url     in            varchar2
-                            , status  in out nocopy number
-                            , body    in out nocopy varchar2
-                            , data    in            varchar2
-                                                    default null
-                            , charset in            varchar2
-                                                    default null
-                            , chunked in            boolean
-                                                    default null )
+  , member procedure request( method      in            varchar2
+                            , url         in            varchar2
+                            , status      in out nocopy number
+                            , body        in out nocopy varchar2
+                            , data        in            varchar2
+                                                        default null
+                            , charset     in            varchar2
+                                                        default null
+                            , chunked     in            boolean
+                                                        default null
+                            , req_headers in            pl_request_headers
+                                                        default null )
    
     /**
      * Executes HTTP request
@@ -96,18 +102,21 @@ type pl_request is object
      * @param data (default null) request data to send in body
      * @param charset (default null) charset to be used for request and response bodies
      * @param chunked (default null) force Transfer-Encoding: chunked
+     * @param req_headers (default null) additional http headers
      */
-  , member procedure request( method  in            varchar2
-                            , url     in            varchar2
-                            , headers in out nocopy pl_request_headers
-                            , status  in out nocopy number
-                            , body    in out nocopy clob
-                            , data    in            clob
-                                                    default null
-                            , charset in            varchar2
-                                                    default null
-                            , chunked in            boolean
-                                                    default null )
+  , member procedure request( method      in            varchar2
+                            , url         in            varchar2
+                            , headers     in out nocopy pl_request_headers
+                            , status      in out nocopy number
+                            , body        in out nocopy clob
+                            , data        in            clob
+                                                        default null
+                            , charset     in            varchar2
+                                                        default null
+                            , chunked     in            boolean
+                                                        default null
+                            , req_headers in            pl_request_headers
+                                                        default null )
    
    
     /**
@@ -119,16 +128,19 @@ type pl_request is object
      * @param data (default null) request data to send in body
      * @param charset (default null) charset to be used for request and response bodies
      * @param chunked (default null) force Transfer-Encoding: chunked
+     * @param req_headers (default null) additional http headers
      */
-  , member procedure request( method  in            varchar2
-                            , url     in            varchar2
-                            , status  in out nocopy number
-                            , body    in out nocopy clob
-                            , data    in            clob
-                                                    default null
-                            , charset in            varchar2
-                                                    default null
-                            , chunked in            boolean
-                                                    default null )
+  , member procedure request( method      in            varchar2
+                            , url         in            varchar2
+                            , status      in out nocopy number
+                            , body        in out nocopy clob
+                            , data        in            clob
+                                                        default null
+                            , charset     in            varchar2
+                                                        default null
+                            , chunked     in            boolean
+                                                        default null
+                            , req_headers in            pl_request_headers
+                                                        default null )
 )
 /
