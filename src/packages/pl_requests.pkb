@@ -111,26 +111,32 @@ is
    * @param data (default null) request data to send
    * @param charset (default 'UTF-8') request data charset
    * @param chunked (default false) force Transfer-Encoding: chunked
+   * @param mime_type (default null) mime type to be specified in content-type header for request data
    */
-  procedure fetch_response( req     in out nocopy utl_http.req
-                          , res     in out nocopy utl_http.resp
-                          , opened  in out nocopy boolean
-                          , headers in            pl_request_headers
-                                                  default null
-                          , data    in            clob
-                                                  default null
-                          , charset in            varchar2
-                                                  default gc_DEFAULT_CHARSET
-                          , chunked in            boolean
-                                                  default false )
+  procedure fetch_response( req       in out nocopy utl_http.req
+                          , res       in out nocopy utl_http.resp
+                          , opened    in out nocopy boolean
+                          , headers   in            pl_request_headers
+                                                    default null
+                          , data      in            clob
+                                                    default null
+                          , charset   in            varchar2
+                                                    default gc_DEFAULT_CHARSET
+                          , chunked   in            boolean
+                                                    default false
+                          , mime_type in            varchar2
+                                                    default null )
   is
+    f_IGNORE_HEADERS_LIST boolean := true;
   begin
     opened := false;
+    f_IGNORE_HEADERS_LIST := ( mime_type is not null );
 
     if headers is not null
     then
-      set_headers( req     => req
-                 , headers => headers );
+      set_headers( req         => req
+                 , headers     => headers
+                 , ignore_list => f_IGNORE_HEADERS_LIST );
     end if;
 
     if data is not null
@@ -138,6 +144,11 @@ is
     then
       -- Theoretically, it's POSSIBLE to send body with HTTP GET
       -- On the other hand, HTTP POST always requires data sent in body
+      if mime_type is not null
+      then
+        utl_http.set_header( req, 'Content-Type', pl_requests_helpers.MIME( mime_type ) );
+      end if;
+
       set_body( req     => req
               , body    => data
               , charset => charset
@@ -164,6 +175,7 @@ is
    * @param req_data (default null) request data clob to be sent in body
    * @param charset (default 'UTF-8') charset to be used for request and response bodies
    * @param chunked (default false) force Transfer-Encoding: chunked
+   * @param mime_type (default 'text/plain') mime type to be specified in content-type header for request data
    */
   procedure request( method      in            varchar2
                    , url         in            varchar2
@@ -179,7 +191,9 @@ is
                    , charset     in            varchar2
                                                default gc_DEFAULT_CHARSET
                    , chunked     in            boolean
-                                               default false )
+                                               default false
+                   , mime_type   in            varchar2
+                                               default 'text/plain' )
   is
     f_OPENED boolean := false;
     req utl_http.req;
@@ -189,13 +203,14 @@ is
                                  , url             => url
                                  , request_context => ctx );
 
-    fetch_response( req     => req
-                  , res     => res
-                  , opened  => f_OPENED
-                  , headers => req_headers
-                  , data    => req_data
-                  , charset => charset
-                  , chunked => chunked );
+    fetch_response( req       => req
+                  , res       => res
+                  , opened    => f_OPENED
+                  , headers   => req_headers
+                  , data      => req_data
+                  , charset   => charset
+                  , chunked   => chunked
+                  , mime_type => mime_type );
 
     res_status := res.status_code;
 
@@ -227,6 +242,7 @@ is
    * @param req_data (default null) request data clob to be sent in body
    * @param charset (default 'UTF-8') charset to be used for request and response bodies
    * @param chunked (default false) force Transfer-Encoding: chunked
+   * @param mime_type (default 'text/plain') mime type to be specified in content-type header for request data
    */
   procedure request( method      in            varchar2
                    , url         in            varchar2
@@ -241,7 +257,9 @@ is
                    , charset     in            varchar2
                                                default gc_DEFAULT_CHARSET
                    , chunked     in            boolean
-                                               default false )
+                                               default false
+                   , mime_type   in            varchar2
+                                               default 'text/plain' )
   is
     f_OPENED boolean := false;
     req utl_http.req;
@@ -251,13 +269,14 @@ is
                                  , url             => url
                                  , request_context => ctx );
 
-    fetch_response( req     => req
-                  , res     => res
-                  , opened  => f_OPENED
-                  , headers => req_headers
-                  , data    => req_data
-                  , charset => charset
-                  , chunked => chunked );
+    fetch_response( req       => req
+                  , res       => res
+                  , opened    => f_OPENED
+                  , headers   => req_headers
+                  , data      => req_data
+                  , charset   => charset
+                  , chunked   => chunked
+                  , mime_type => mime_type );
 
     res_status := res.status_code;
 
@@ -287,6 +306,7 @@ is
    * @param req_data (default null) request data text to be sent in body
    * @param charset (default 'UTF-8') charset to be used for request and response bodies
    * @param chunked (default false) force Transfer-Encoding: chunked
+   * @param mime_type (default 'text/plain') mime type to be specified in content-type header for request data
    */
   procedure request( method      in            varchar2
                    , url         in            varchar2
@@ -302,7 +322,9 @@ is
                    , charset     in            varchar2
                                                default gc_DEFAULT_CHARSET
                    , chunked     in            boolean
-                                               default false )
+                                               default false
+                   , mime_type   in            varchar2
+                                               default 'text/plain' )
   is
     l_res_body clob;
   begin
@@ -320,7 +342,8 @@ is
            , req_data    => to_clob( req_data )
            , res_headers => res_headers
            , res_status  => res_status
-           , res_body    => l_res_body );
+           , res_body    => l_res_body
+           , mime_type   => mime_type );
     
     res_body := l_res_body;
     dbms_lob.freeTemporary( l_res_body );
@@ -341,6 +364,7 @@ is
    * @param req_data (default null) request data text to be sent in body
    * @param charset (default 'UTF-8') charset to be used for request and response bodies
    * @param chunked (default false) force Transfer-Encoding: chunked
+   * @param mime_type (default 'text/plain') mime type to be specified in content-type header for request data
    */
   procedure request( method      in            varchar2
                    , url         in            varchar2
@@ -355,7 +379,9 @@ is
                    , charset     in            varchar2
                                                default gc_DEFAULT_CHARSET
                    , chunked     in            boolean
-                                               default false )
+                                               default false
+                   , mime_type   in            varchar2
+                                               default 'text/plain' )
   is
     l_res_body clob;
   begin
@@ -372,7 +398,8 @@ is
            , req_headers => req_headers
            , req_data    => to_clob( req_data )
            , res_status  => res_status
-           , res_body    => l_res_body );
+           , res_body    => l_res_body
+           , mime_type   => mime_type );
     
     res_body := l_res_body;
     dbms_lob.freeTemporary( l_res_body );
@@ -496,9 +523,12 @@ is
    * Sets request headers
    * @param req request object
    * @param headers headers collection
+   * @param ignore_list (default true) do not set headers from ignore list
    */
-  procedure set_headers( req     in out nocopy utl_http.req
-                       , headers in            pl_request_headers )
+  procedure set_headers( req         in out nocopy utl_http.req
+                       , headers     in            pl_request_headers
+                       , ignore_list in            boolean
+                                                   default true )
   is
   begin
     if headers is not null and headers.count > 0
@@ -508,7 +538,16 @@ is
                         from table( headers ) h
                        where h."VALUE" is not null )
       loop
-        utl_http.set_header( req, header."NAME", header."VALUE" );
+        if not ( 
+          nvl( ignore_list, true )
+          and
+          trim(upper(header."NAME")) in ( 'CONTENT-TYPE'
+                                        , 'TRANSFER-ENCODING'
+                                        , 'CONTENT-LENGTH' ) 
+        )
+        then
+          utl_http.set_header( req, header."NAME", header."VALUE" );
+        end if;
       end loop;
     end if;
   end set_headers;

@@ -23,6 +23,7 @@ is
    * @param req_data (default null) request data clob to be sent in body
    * @param charset (default 'UTF-8') charset to be used for request and response bodies
    * @param chunked (default false) force Transfer-Encoding: chunked
+   * @param mime_type (default 'text/plain') mime type to be specified in content-type header for request data
    */
   procedure request( method      in            varchar2
                    , url         in            varchar2
@@ -38,7 +39,9 @@ is
                    , charset     in            varchar2
                                                default gc_DEFAULT_CHARSET
                    , chunked     in            boolean
-                                               default false );
+                                               default false
+                   , mime_type   in            varchar2
+                                               default 'text/plain' );
   
   /**
    * Executes http request
@@ -51,6 +54,7 @@ is
    * @param req_data (default null) request data clob to be sent in body
    * @param charset (default 'UTF-8') charset to be used for request and response bodies
    * @param chunked (default false) force Transfer-Encoding: chunked
+   * @param mime_type (default 'text/plain') mime type to be specified in content-type header for request data
    */
   procedure request( method      in            varchar2
                    , url         in            varchar2
@@ -65,7 +69,9 @@ is
                    , charset     in            varchar2
                                                default gc_DEFAULT_CHARSET
                    , chunked     in            boolean
-                                               default false );
+                                               default false
+                   , mime_type   in            varchar2
+                                               default 'text/plain' );
   
   /**
    * Executes http request
@@ -79,6 +85,7 @@ is
    * @param req_data (default null) request data text to be sent in body
    * @param charset (default 'UTF-8') charset to be used for request and response bodies
    * @param chunked (default false) force Transfer-Encoding: chunked
+   * @param mime_type (default 'text/plain') mime type to be specified in content-type header for request data
    */
   procedure request( method      in            varchar2
                    , url         in            varchar2
@@ -94,7 +101,9 @@ is
                    , charset     in            varchar2
                                                default gc_DEFAULT_CHARSET
                    , chunked     in            boolean
-                                               default false );
+                                               default false
+                   , mime_type   in            varchar2
+                                               default 'text/plain' );
   
   /**
    * Executes http request
@@ -107,6 +116,7 @@ is
    * @param req_data (default null) request data text to be sent in body
    * @param charset (default 'UTF-8') charset to be used for request and response bodies
    * @param chunked (default false) force Transfer-Encoding: chunked
+   * @param mime_type (default 'text/plain') mime type to be specified in content-type header for request data
    */
   procedure request( method      in            varchar2
                    , url         in            varchar2
@@ -121,7 +131,9 @@ is
                    , charset     in            varchar2
                                                default gc_DEFAULT_CHARSET
                    , chunked     in            boolean
-                                               default false );
+                                               default false
+                   , mime_type   in            varchar2
+                                               default 'text/plain' );
 
   /**
    * Collects all response headers from response to headers collection
@@ -165,9 +177,12 @@ is
    * Sets request headers
    * @param req request object
    * @param headers headers collection
+   * @param ignore_list (default true) do not set headers from ignore list
    */
-  procedure set_headers( req     in out nocopy utl_http.req
-                       , headers in            pl_request_headers );
+  procedure set_headers( req         in out nocopy utl_http.req
+                       , headers     in            pl_request_headers
+                       , ignore_list in            boolean
+                                                   default true );
 
   /**
    * Sets request body from string

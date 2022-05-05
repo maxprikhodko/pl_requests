@@ -9,7 +9,9 @@ is
                                  , charset         varchar2
                                                    default null
                                  , chunked         boolean
-                                                   default false )
+                                                   default false
+                                 , mime_type       varchar2
+                                                   default 'text/plain' )
                                    return self as result
   is
   begin
@@ -21,8 +23,9 @@ is
       self.wallet_password := wallet_password;
     end if;
     
-    self.charset := nvl( charset, pl_requests.DEFAULT_CHARSET );
-    self.chunked := ( case when chunked then 'T' else 'F' end );
+    self.charset   := nvl( charset, pl_requests.DEFAULT_CHARSET );
+    self.chunked   := ( case when chunked then 'T' else 'F' end );
+    self.mime_type := mime_type;
     return;
   end pl_request;
 
@@ -74,6 +77,7 @@ is
    * @param headers response headers output
    * @param status response status output
    * @param body response body output
+   * @param mime_type (default null) mime type to be specified in content-type header for request data
    * @param data (default null) request data to send in body
    * @param charset (default null) charset to be used for request and response bodies
    * @param chunked (default null) force Transfer-Encoding: chunked
@@ -85,6 +89,8 @@ is
                           , status      in out nocopy number
                           , body        in out nocopy varchar2
                           , data        in            varchar2
+                                                      default null
+                          , mime_type   in            varchar2
                                                       default null
                           , charset     in            varchar2
                                                       default null
@@ -123,7 +129,8 @@ is
                        , res_body    => body
                        , ctx         => ctx
                        , charset     => coalesce( charset, self.charset, pl_requests.DEFAULT_CHARSET )
-                       , chunked     => coalesce( chunked, ( case when self.chunked = 'T' then true else false end ), false ) );
+                       , chunked     => coalesce( chunked, ( case when self.chunked = 'T' then true else false end ), false )
+                       , mime_type   => coalesce( mime_type, self.mime_type ) );
     
     if ctx is not null
     then
@@ -145,6 +152,7 @@ is
    * @param status response status output
    * @param body response body output
    * @param data (default null) request data to send in body
+   * @param mime_type (default null) mime type to be specified in content-type header for request data
    * @param charset (default null) charset to be used for request and response bodies
    * @param chunked (default null) force Transfer-Encoding: chunked
    * @param req_headers (default null) additional http headers
@@ -154,6 +162,8 @@ is
                           , status      in out nocopy number
                           , body        in out nocopy varchar2
                           , data        in            varchar2
+                                                      default null
+                          , mime_type   in            varchar2
                                                       default null
                           , charset     in            varchar2
                                                       default null
@@ -191,7 +201,8 @@ is
                        , res_body    => body
                        , ctx         => ctx
                        , charset     => coalesce( charset, self.charset, pl_requests.DEFAULT_CHARSET )
-                       , chunked     => coalesce( chunked, ( case when self.chunked = 'T' then true else false end ), false ) );
+                       , chunked     => coalesce( chunked, ( case when self.chunked = 'T' then true else false end ), false )
+                       , mime_type   => coalesce( mime_type, self.mime_type ) );
     
     if ctx is not null
     then
@@ -214,6 +225,7 @@ is
    * @param status response status output
    * @param body response body output
    * @param data (default null) request data to send in body
+   * @param mime_type (default null) mime type to be specified in content-type header for request data
    * @param charset (default null) charset to be used for request and response bodies
    * @param chunked (default null) force Transfer-Encoding: chunked
    * @param req_headers (default null) additional http headers
@@ -224,6 +236,8 @@ is
                           , status      in out nocopy number
                           , body        in out nocopy clob
                           , data        in            clob
+                                                      default null
+                          , mime_type   in            varchar2
                                                       default null
                           , charset     in            varchar2
                                                       default null
@@ -262,7 +276,8 @@ is
                        , res_body    => body
                        , ctx         => ctx
                        , charset     => coalesce( charset, self.charset, pl_requests.DEFAULT_CHARSET )
-                       , chunked     => coalesce( chunked, ( case when self.chunked = 'T' then true else false end ), false ) );
+                       , chunked     => coalesce( chunked, ( case when self.chunked = 'T' then true else false end ), false )
+                       , mime_type   => coalesce( mime_type, self.mime_type ) );
     
     if ctx is not null
     then
@@ -284,6 +299,7 @@ is
    * @param status response status output
    * @param body response body output
    * @param data (default null) request data to send in body
+   * @param mime_type (default null) mime type to be specified in content-type header for request data
    * @param charset (default null) charset to be used for request and response bodies
    * @param chunked (default null) force Transfer-Encoding: chunked
    */
@@ -292,6 +308,8 @@ is
                           , status      in out nocopy number
                           , body        in out nocopy clob
                           , data        in            clob
+                                                      default null
+                          , mime_type   in            varchar2
                                                       default null
                           , charset     in            varchar2
                                                       default null
@@ -329,7 +347,8 @@ is
                        , res_body    => body
                        , ctx         => ctx
                        , charset     => coalesce( charset, self.charset, pl_requests.DEFAULT_CHARSET )
-                       , chunked     => coalesce( chunked, ( case when self.chunked = 'T' then true else false end ), false ) );
+                       , chunked     => coalesce( chunked, ( case when self.chunked = 'T' then true else false end ), false )
+                       , mime_type   => coalesce( mime_type, self.mime_type ) );
     
     if ctx is not null
     then
