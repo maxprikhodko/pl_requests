@@ -5,7 +5,11 @@ is
                                  , wallet_path     varchar2
                                                    default null
                                  , wallet_password varchar2
-                                                   default null )
+                                                   default null
+                                 , charset         varchar2
+                                                   default null
+                                 , chunked         boolean
+                                                   default false )
                                    return self as result
   is
   begin
@@ -17,6 +21,8 @@ is
       self.wallet_password := wallet_password;
     end if;
     
+    self.charset := nvl( charset, pl_requests.DEFAULT_CHARSET );
+    self.chunked := ( case when chunked then 'T' else 'F' end );
     return;
   end pl_request;
 
@@ -69,6 +75,8 @@ is
    * @param status response status output
    * @param body response body output
    * @param data (default null) request data to send in body
+   * @param charset (default null) charset to be used for request and response bodies
+   * @param chunked (default null) force Transfer-Encoding: chunked
    */
   member procedure request( method  in            varchar2
                           , url     in            varchar2
@@ -76,6 +84,10 @@ is
                           , status  in out nocopy number
                           , body    in out nocopy varchar2
                           , data    in            varchar2
+                                                  default null
+                          , charset in            varchar2
+                                                  default null
+                          , chunked in            boolean
                                                   default null )
   is
     ctx utl_http.request_context_key := null;
@@ -97,7 +109,9 @@ is
                        , res_headers => headers
                        , res_status  => status
                        , res_body    => body
-                       , ctx         => ctx );
+                       , ctx         => ctx
+                       , charset     => coalesce( charset, self.charset, pl_requests.DEFAULT_CHARSET )
+                       , chunked     => coalesce( chunked, ( case when self.chunked = 'T' then true else false end ), false ) );
     
     if ctx is not null
     then
@@ -119,13 +133,19 @@ is
    * @param status response status output
    * @param body response body output
    * @param data (default null) request data to send in body
+   * @param charset (default null) charset to be used for request and response bodies
+   * @param chunked (default null) force Transfer-Encoding: chunked
    */
-  member procedure request( method in            varchar2
-                          , url    in            varchar2
-                          , status in out nocopy number
-                          , body   in out nocopy varchar2
-                          , data   in            varchar2
-                                                 default null )
+  member procedure request( method  in            varchar2
+                          , url     in            varchar2
+                          , status  in out nocopy number
+                          , body    in out nocopy varchar2
+                          , data    in            varchar2
+                                                  default null
+                          , charset in            varchar2
+                                                  default null
+                          , chunked in            boolean
+                                                  default null )
   is
     ctx utl_http.request_context_key := null;
   begin
@@ -145,7 +165,9 @@ is
                        , req_data    => data
                        , res_status  => status
                        , res_body    => body
-                       , ctx         => ctx );
+                       , ctx         => ctx
+                       , charset     => coalesce( charset, self.charset, pl_requests.DEFAULT_CHARSET )
+                       , chunked     => coalesce( chunked, ( case when self.chunked = 'T' then true else false end ), false ) );
     
     if ctx is not null
     then
@@ -168,6 +190,8 @@ is
    * @param status response status output
    * @param body response body output
    * @param data (default null) request data to send in body
+   * @param charset (default null) charset to be used for request and response bodies
+   * @param chunked (default null) force Transfer-Encoding: chunked
    */
   member procedure request( method  in            varchar2
                           , url     in            varchar2
@@ -175,6 +199,10 @@ is
                           , status  in out nocopy number
                           , body    in out nocopy clob
                           , data    in            clob
+                                                  default null
+                          , charset in            varchar2
+                                                  default null
+                          , chunked in            boolean
                                                   default null )
   is
     ctx utl_http.request_context_key := null;
@@ -196,7 +224,9 @@ is
                        , res_headers => headers
                        , res_status  => status
                        , res_body    => body
-                       , ctx         => ctx );
+                       , ctx         => ctx
+                       , charset     => coalesce( charset, self.charset, pl_requests.DEFAULT_CHARSET )
+                       , chunked     => coalesce( chunked, ( case when self.chunked = 'T' then true else false end ), false ) );
     
     if ctx is not null
     then
@@ -218,13 +248,19 @@ is
    * @param status response status output
    * @param body response body output
    * @param data (default null) request data to send in body
+   * @param charset (default null) charset to be used for request and response bodies
+   * @param chunked (default null) force Transfer-Encoding: chunked
    */
-  member procedure request( method in            varchar2
-                          , url    in            varchar2
-                          , status in out nocopy number
-                          , body   in out nocopy clob
-                          , data   in            clob
-                                                 default null )
+  member procedure request( method  in            varchar2
+                          , url     in            varchar2
+                          , status  in out nocopy number
+                          , body    in out nocopy clob
+                          , data    in            clob
+                                                  default null
+                          , charset in            varchar2
+                                                  default null
+                          , chunked in            boolean
+                                                  default null )
   is
     ctx utl_http.request_context_key := null;
   begin
@@ -244,7 +280,9 @@ is
                        , req_data    => data
                        , res_status  => status
                        , res_body    => body
-                       , ctx         => ctx );
+                       , ctx         => ctx
+                       , charset     => coalesce( charset, self.charset, pl_requests.DEFAULT_CHARSET )
+                       , chunked     => coalesce( chunked, ( case when self.chunked = 'T' then true else false end ), false ) );
     
     if ctx is not null
     then

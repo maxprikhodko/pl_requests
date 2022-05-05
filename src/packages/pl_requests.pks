@@ -6,6 +6,12 @@ is
   gc_CHUNK_SIZE      constant number       := 32767;
 
   /**
+   * Get default charset
+   * @return default charset
+   */
+  function DEFAULT_CHARSET return varchar2;
+
+  /**
    * Executes http request
    * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
    * @param url target url

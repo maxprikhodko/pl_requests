@@ -5,12 +5,18 @@ type pl_request is object
   , wallet_path     varchar2(2048)
   , wallet_password varchar2(2048)
   , headers         pl_request_headers
+  , charset         varchar2(32)
+  , chunked         varchar2(1 byte)
 
   , constructor function pl_request( base_url        varchar2
                                    , wallet_path     varchar2
                                                      default null
                                    , wallet_password varchar2
-                                                     default null )
+                                                     default null
+                                   , charset         varchar2
+                                                     default null
+                                   , chunked         boolean
+                                                     default false )
                                      return self as result
     /**
      * Returns global header for stored request
@@ -44,6 +50,8 @@ type pl_request is object
      * @param status response status output
      * @param body response body output
      * @param data (default null) request data to send in body
+     * @param charset (default null) charset to be used for request and response bodies
+     * @param chunked (default null) force Transfer-Encoding: chunked
      */
   , member procedure request( method  in            varchar2
                             , url     in            varchar2
@@ -51,6 +59,10 @@ type pl_request is object
                             , status  in out nocopy number
                             , body    in out nocopy varchar2
                             , data    in            varchar2
+                                                    default null
+                            , charset in            varchar2
+                                                    default null
+                            , chunked in            boolean
                                                     default null )
    
     /**
@@ -60,13 +72,19 @@ type pl_request is object
      * @param status response status output
      * @param body response body output
      * @param data (default null) request data to send in body
+     * @param charset (default null) charset to be used for request and response bodies
+     * @param chunked (default null) force Transfer-Encoding: chunked
      */
-  , member procedure request( method in            varchar2
-                            , url    in            varchar2
-                            , status in out nocopy number
-                            , body   in out nocopy varchar2
-                            , data   in            varchar2
-                                                   default null )
+  , member procedure request( method  in            varchar2
+                            , url     in            varchar2
+                            , status  in out nocopy number
+                            , body    in out nocopy varchar2
+                            , data    in            varchar2
+                                                    default null
+                            , charset in            varchar2
+                                                    default null
+                            , chunked in            boolean
+                                                    default null )
    
     /**
      * Executes HTTP request
@@ -76,6 +94,8 @@ type pl_request is object
      * @param status response status output
      * @param body response body output
      * @param data (default null) request data to send in body
+     * @param charset (default null) charset to be used for request and response bodies
+     * @param chunked (default null) force Transfer-Encoding: chunked
      */
   , member procedure request( method  in            varchar2
                             , url     in            varchar2
@@ -83,6 +103,10 @@ type pl_request is object
                             , status  in out nocopy number
                             , body    in out nocopy clob
                             , data    in            clob
+                                                    default null
+                            , charset in            varchar2
+                                                    default null
+                            , chunked in            boolean
                                                     default null )
    
    
@@ -93,12 +117,18 @@ type pl_request is object
      * @param status response status output
      * @param body response body output
      * @param data (default null) request data to send in body
+     * @param charset (default null) charset to be used for request and response bodies
+     * @param chunked (default null) force Transfer-Encoding: chunked
      */
-  , member procedure request( method in            varchar2
-                            , url    in            varchar2
-                            , status in out nocopy number
-                            , body   in out nocopy clob
-                            , data   in            clob
-                                                   default null )
+  , member procedure request( method  in            varchar2
+                            , url     in            varchar2
+                            , status  in out nocopy number
+                            , body    in out nocopy clob
+                            , data    in            clob
+                                                    default null
+                            , charset in            varchar2
+                                                    default null
+                            , chunked in            boolean
+                                                    default null )
 )
 /

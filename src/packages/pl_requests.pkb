@@ -4,6 +4,16 @@ is
   g_DB_CHARSET nls_database_parameters."VALUE"%TYPE;
 
   /**
+   * Get default charset
+   * @return default charset
+   */
+  function DEFAULT_CHARSET return varchar2
+  is
+  begin
+    return gc_DEFAULT_CHARSET;
+  end DEFAULT_CHARSET;
+
+  /**
    * Converts custom charset alias to specific character set to be used
    * @param charset custom charset alias
    * @return db charset name on success, otherwise initial value is returned
@@ -99,7 +109,7 @@ is
    * @param opened output response opened flag
    * @param headers (default null) request headers to set
    * @param data (default null) request data to send
-   * @param charse (default 'UTF-8') request data charset
+   * @param charset (default 'UTF-8') request data charset
    * @param chunked (default false) force Transfer-Encoding: chunked
    */
   procedure fetch_response( req     in out nocopy utl_http.req
@@ -305,6 +315,7 @@ is
            , url         => url
            , ctx         => ctx
            , charset     => charset
+           , chunked     => chunked
            , req_headers => req_headers
            , req_data    => to_clob( req_data )
            , res_headers => res_headers
@@ -357,6 +368,7 @@ is
            , url         => url
            , ctx         => ctx
            , charset     => charset
+           , chunked     => chunked
            , req_headers => req_headers
            , req_data    => to_clob( req_data )
            , res_status  => res_status
