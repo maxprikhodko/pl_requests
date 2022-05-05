@@ -2,6 +2,102 @@ create or replace
 package body pl_requests_helpers
 is
   /**
+   * Returns matching document MIME type
+   * @return matched mime type or initial value
+   */
+  function MIME( name in varchar2 )
+                 return varchar2
+  is
+    l_name constant varchar2(256) := substrb(trim(upper(name)), 1, 256);
+  begin
+    if not regexp_like( l_name, '^\.?[A-Z0-9]+$' )
+    then
+      return name;
+    end if;
+
+    return (
+      case
+        -- Commom types
+        when l_name in ( '.TXT', 'TXT', 'TEXT' ) then 'text/plain'
+        when l_name in ( '.JSON', 'JSON' ) then 'application/json'
+        when l_name in ( '.XML', 'XML' ) then 'application/xml'
+        when l_name in ( '.CSV', 'CSV' ) then 'text/csv'
+        -- Other possible types
+        when l_name in ( '.AAC', 'AAC' ) then 'audio/aac'
+        when l_name in ( '.ABW', 'ABW' ) then 'application/x-abiword'
+        when l_name in ( '.ARC', 'ARC' ) then 'application/x-freearc'
+        when l_name in ( '.AVIF', 'AVIF' ) then 'image/avif'
+        when l_name in ( '.AVI', 'AVI' ) then 'video/x-msvideo'
+        when l_name in ( '.AZW', 'AZW' ) then 'application/vnd.amazon.ebook'
+        when l_name in ( '.BIN', 'BIN' ) then 'application/octet-stream'
+        when l_name in ( '.BMP', 'BMP' ) then 'image/bmp'
+        when l_name in ( '.BZ', 'BZ' ) then 'application/x-bzip'
+        when l_name in ( '.BZ2', 'BZ2' ) then 'application/x-bzip2'
+        when l_name in ( '.CDA', 'CDA' ) then 'application/x-cdf'
+        when l_name in ( '.CSH', 'CSH' ) then 'application/x-csh'
+        when l_name in ( '.CSS', 'CSS' ) then 'text/css'
+        when l_name in ( '.DOC', 'DOC' ) then 'application/msword'
+        when l_name in ( '.DOCX', 'DOCX' ) then 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        when l_name in ( '.EOT', 'EOT' ) then 'application/vnd.ms-fontobject'
+        when l_name in ( '.EPUB', 'EPUB' ) then 'application/epub+zip'
+        when l_name in ( '.GZ', 'GZ' ) then 'application/gzip'
+        when l_name in ( '.GIF', 'GIF' ) then 'image/gif'
+        when l_name in ( '.HTM', '.HTML', 'HTM', 'HTML' ) then 'text/html'
+        when l_name in ( '.ICO', 'ICO' ) then 'image/vnd.microsoft.icon'
+        when l_name in ( '.ICS', 'ICS' ) then 'text/calendar'
+        when l_name in ( '.JAR', 'JAR' ) then 'application/java-archive'
+        when l_name in ( '.JPEG', '.JPG', 'JPEG', 'JPG' ) then 'image/jpeg'
+        when l_name in ( '.JS', 'JS' ) then 'text/javascript'
+        when l_name in ( '.JSONLD', 'JSONLD' ) then 'application/ld+json'
+        when l_name in ( '.MID', '.MIDI', 'MID', 'MIDI' ) then 'audio/midi audio/x-midi'
+        when l_name in ( '.MJS', 'MJS' ) then 'text/javascript'
+        when l_name in ( '.MP3', 'MP3' ) then 'audio/mpeg'
+        when l_name in ( '.MP4', 'MP4' ) then 'video/mp4'
+        when l_name in ( '.MPEG', 'MPEG' ) then 'video/mpeg'
+        when l_name in ( '.MPKG', 'MPKG' ) then 'application/vnd.apple.installer+xml'
+        when l_name in ( '.ODP', 'ODP' ) then 'application/vnd.oasis.opendocument.presentation'
+        when l_name in ( '.ODS', 'ODS' ) then 'application/vnd.oasis.opendocument.spreadsheet'
+        when l_name in ( '.ODT', 'ODT' ) then 'application/vnd.oasis.opendocument.text'
+        when l_name in ( '.OGA', 'OGA' ) then 'audio/ogg'
+        when l_name in ( '.OGV', 'OGV' ) then 'video/ogg'
+        when l_name in ( '.OGX', 'OGX' ) then 'application/ogg'
+        when l_name in ( '.OPUS', 'OPUS' ) then 'audio/opus'
+        when l_name in ( '.OTF', 'OTF' ) then 'font/otf'
+        when l_name in ( '.PNG', 'PNG' ) then 'image/png'
+        when l_name in ( '.PDF', 'PDF' ) then 'application/pdf'
+        when l_name in ( '.PHP', 'PHP' ) then 'application/x-httpd-php'
+        when l_name in ( '.PPT', 'PPT' ) then 'application/vnd.ms-powerpoint'
+        when l_name in ( '.PPTX', 'PPTX' ) then 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+        when l_name in ( '.RAR', 'RAR' ) then 'application/vnd.rar'
+        when l_name in ( '.RTF', 'RTF' ) then 'application/rtf'
+        when l_name in ( '.SH', 'SH' ) then 'application/x-sh'
+        when l_name in ( '.SVG', 'SVG' ) then 'image/svg+xml'
+        when l_name in ( '.SWF', 'SWF' ) then 'application/x-shockwave-flash'
+        when l_name in ( '.TAR', 'TAR' ) then 'application/x-tar'
+        when l_name in ( '.TIF', '.TIFF', 'TIF', 'TIFF' ) then 'image/tiff'
+        when l_name in ( '.TS', 'TS' ) then 'video/mp2t'
+        when l_name in ( '.TTF', 'TTF' ) then 'font/ttf'
+        when l_name in ( '.VSD', 'VSD' ) then 'application/vnd.visio'
+        when l_name in ( '.WAV', 'WAV' ) then 'audio/wav'
+        when l_name in ( '.WEBA', 'WEBA' ) then 'audio/webm'
+        when l_name in ( '.WEBM', 'WEBM' ) then 'video/webm'
+        when l_name in ( '.WEBP', 'WEBP' ) then 'image/webp'
+        when l_name in ( '.WOFF', 'WOFF' ) then 'font/woff'
+        when l_name in ( '.WOFF2', 'WOFF2' ) then 'font/woff2'
+        when l_name in ( '.XHTML', 'XHTML' ) then 'application/xhtml+xml'
+        when l_name in ( '.XLS', 'XLS' ) then 'application/vnd.ms-excel'
+        when l_name in ( '.XLSX', 'XLSX' ) then 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        when l_name in ( '.XUL', 'XUL' ) then 'application/vnd.mozilla.xul+xml'
+        when l_name in ( '.ZIP', 'ZIP' ) then 'application/zip'
+        when l_name in ( '.3GP', '3GP' ) then 'video/3gpp'
+        when l_name in ( '.3G2', '3G2' ) then 'video/3gpp2'
+        when l_name in ( '.7Z', '7Z' ) then 'application/x-7z-compressed'
+        else name
+      end
+    );
+  end MIME;
+
+  /**
    * Resolves and partly normalizes url path
    * @param url url path part
    * @param base_url (optional) base url

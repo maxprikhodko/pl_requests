@@ -7,6 +7,13 @@ is
   gc_QUERY    constant number := 5;
 
   /**
+   * Returns matching MIME type
+   * @return matched mime type or initial value
+   */
+  function MIME( name in varchar2 )
+                 return varchar2;
+
+  /**
    * Resolves and partly normalizes url path
    * @param url url path part
    * @param base_url (optional) base url
