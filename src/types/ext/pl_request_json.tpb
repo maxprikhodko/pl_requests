@@ -149,7 +149,7 @@ is
                           , headers     in out nocopy pl_request_headers
                           , status      in out nocopy number
                           , body        in out nocopy pljson
-                          , data        in  pljson
+                          , data        in            pljson
                           , charset     in            varchar2
                                                       default null
                           , chunked     in            boolean
@@ -206,7 +206,7 @@ is
                           , url         in            varchar2
                           , status      in out nocopy number
                           , body        in out nocopy pljson
-                          , data        in  pljson
+                          , data        in            pljson
                           , charset     in            varchar2
                                                       default null
                           , chunked     in            boolean
