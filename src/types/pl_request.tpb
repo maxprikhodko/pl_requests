@@ -250,7 +250,6 @@ is
     l_headers pl_request_headers;
   begin
     status := null;
-    body   := null;
 
     if  self.wallet_path is not null 
     and self.wallet_password is not null
@@ -322,7 +321,6 @@ is
     l_headers pl_request_headers;
   begin
     status := null;
-    body   := null;
 
     if  self.wallet_path is not null 
     and self.wallet_password is not null
