@@ -37,8 +37,8 @@ declare
     , 'drop type pl_request'
     , 'drop package pl_requests'
     , 'drop package pl_requests_helpers'
-    , 'drop type pl_request_headers'
-    , 'drop type pl_request_header'
+    , 'drop type pl_requests_http_headers'
+    , 'drop type pl_requests_http_header'
   );
 begin
   --

@@ -28,7 +28,7 @@ type pl_request_json under pl_request (
      */
   , member procedure request( method      in            varchar2
                             , url         in            varchar2
-                            , headers     in out nocopy pl_request_headers
+                            , headers     in out nocopy pl_requests_http_headers
                             , status      in out nocopy number
                             , body        in out nocopy pljson
                             , data        in            clob
@@ -39,7 +39,7 @@ type pl_request_json under pl_request (
                                                         default null
                             , chunked     in            boolean
                                                         default null
-                            , req_headers in            pl_request_headers
+                            , req_headers in            pl_requests_http_headers
                                                         default null )
    
     /**
@@ -66,7 +66,7 @@ type pl_request_json under pl_request (
                                                         default null
                             , chunked     in            boolean
                                                         default null
-                            , req_headers in            pl_request_headers
+                            , req_headers in            pl_requests_http_headers
                                                         default null )
     
     /**
@@ -83,7 +83,7 @@ type pl_request_json under pl_request (
      */
   , member procedure request( method      in            varchar2
                             , url         in            varchar2
-                            , headers     in out nocopy pl_request_headers
+                            , headers     in out nocopy pl_requests_http_headers
                             , status      in out nocopy number
                             , body        in out nocopy pljson
                             , data        in            pljson
@@ -91,7 +91,7 @@ type pl_request_json under pl_request (
                                                         default null
                             , chunked     in            boolean
                                                         default null
-                            , req_headers in            pl_request_headers
+                            , req_headers in            pl_requests_http_headers
                                                         default null )
    
     /**
@@ -114,7 +114,7 @@ type pl_request_json under pl_request (
                                                         default null
                             , chunked     in            boolean
                                                         default null
-                            , req_headers in            pl_request_headers
+                            , req_headers in            pl_requests_http_headers
                                                         default null )
 ) not final
 /

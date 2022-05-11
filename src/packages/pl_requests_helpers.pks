@@ -44,7 +44,7 @@ is
    */
   procedure set_header( name            in            varchar2
                       , val             in            varchar2
-                      , headers_storage in out nocopy pl_request_headers
+                      , headers_storage in out nocopy pl_requests_http_headers
                       , append          in            boolean
                                                       default false );
   
@@ -55,7 +55,7 @@ is
    * @return header value or null if not found or uninitialized
    */
   function get_header( name            in varchar2
-                     , headers_storage in pl_request_headers )
+                     , headers_storage in pl_requests_http_headers )
                        return varchar2;
 
   /**
@@ -65,9 +65,9 @@ is
    * @param r (default null) right storage
    * @return merged storage
    */
-  function merge_headers( l in pl_request_headers
-                        , r in pl_request_headers
+  function merge_headers( l in pl_requests_http_headers
+                        , r in pl_requests_http_headers
                                default null )
-                          return pl_request_headers;
+                          return pl_requests_http_headers;
 end pl_requests_helpers;
 /

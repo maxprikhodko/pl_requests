@@ -4,7 +4,7 @@ type pl_request is object
     base_url        varchar2(2048)
   , wallet_path     varchar2(2048)
   , wallet_password varchar2(2048)
-  , headers         pl_request_headers
+  , headers         pl_requests_http_headers
   , charset         varchar2(32)
   , chunked         varchar2(1 byte)
   , mime_type       varchar2(512)
@@ -60,7 +60,7 @@ type pl_request is object
      */
   , member procedure request( method      in            varchar2
                             , url         in            varchar2
-                            , headers     in out nocopy pl_request_headers
+                            , headers     in out nocopy pl_requests_http_headers
                             , status      in out nocopy number
                             , body        in out nocopy varchar2
                             , data        in            varchar2
@@ -71,7 +71,7 @@ type pl_request is object
                                                         default null
                             , chunked     in            boolean
                                                         default null
-                            , req_headers in            pl_request_headers
+                            , req_headers in            pl_requests_http_headers
                                                         default null )
    
     /**
@@ -98,7 +98,7 @@ type pl_request is object
                                                         default null
                             , chunked     in            boolean
                                                         default null
-                            , req_headers in            pl_request_headers
+                            , req_headers in            pl_requests_http_headers
                                                         default null )
    
     /**
@@ -116,7 +116,7 @@ type pl_request is object
      */
   , member procedure request( method      in            varchar2
                             , url         in            varchar2
-                            , headers     in out nocopy pl_request_headers
+                            , headers     in out nocopy pl_requests_http_headers
                             , status      in out nocopy number
                             , body        in out nocopy clob
                             , data        in            clob
@@ -127,7 +127,7 @@ type pl_request is object
                                                         default null
                             , chunked     in            boolean
                                                         default null
-                            , req_headers in            pl_request_headers
+                            , req_headers in            pl_requests_http_headers
                                                         default null )
    
    
@@ -155,7 +155,7 @@ type pl_request is object
                                                         default null
                             , chunked     in            boolean
                                                         default null
-                            , req_headers in            pl_request_headers
+                            , req_headers in            pl_requests_http_headers
                                                         default null )
 ) not final
 /

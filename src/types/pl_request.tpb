@@ -85,7 +85,7 @@ is
    */
   member procedure request( method      in            varchar2
                           , url         in            varchar2
-                          , headers     in out nocopy pl_request_headers
+                          , headers     in out nocopy pl_requests_http_headers
                           , status      in out nocopy number
                           , body        in out nocopy varchar2
                           , data        in            varchar2
@@ -96,11 +96,11 @@ is
                                                       default null
                           , chunked     in            boolean
                                                       default null
-                          , req_headers in            pl_request_headers
+                          , req_headers in            pl_requests_http_headers
                                                       default null )
   is
     ctx       utl_http.request_context_key := null;
-    l_headers pl_request_headers;
+    l_headers pl_requests_http_headers;
   begin
     status := null;
     body   := null;
@@ -169,11 +169,11 @@ is
                                                       default null
                           , chunked     in            boolean
                                                       default null
-                          , req_headers in            pl_request_headers
+                          , req_headers in            pl_requests_http_headers
                                                       default null )
   is
     ctx       utl_http.request_context_key := null;
-    l_headers pl_request_headers;
+    l_headers pl_requests_http_headers;
   begin
     status := null;
     body   := null;
@@ -232,7 +232,7 @@ is
    */
   member procedure request( method      in            varchar2
                           , url         in            varchar2
-                          , headers     in out nocopy pl_request_headers
+                          , headers     in out nocopy pl_requests_http_headers
                           , status      in out nocopy number
                           , body        in out nocopy clob
                           , data        in            clob
@@ -243,11 +243,11 @@ is
                                                       default null
                           , chunked     in            boolean
                                                       default null
-                          , req_headers in            pl_request_headers
+                          , req_headers in            pl_requests_http_headers
                                                       default null )
   is
     ctx       utl_http.request_context_key := null;
-    l_headers pl_request_headers;
+    l_headers pl_requests_http_headers;
   begin
     status := null;
 
@@ -314,11 +314,11 @@ is
                                                       default null
                           , chunked     in            boolean
                                                       default null
-                          , req_headers in            pl_request_headers
+                          , req_headers in            pl_requests_http_headers
                                                       default null )
   is
     ctx       utl_http.request_context_key := null;
-    l_headers pl_request_headers;
+    l_headers pl_requests_http_headers;
   begin
     status := null;
 

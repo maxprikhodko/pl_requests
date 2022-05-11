@@ -168,14 +168,14 @@ is
    */
   procedure set_header( name            in            varchar2
                       , val             in            varchar2
-                      , headers_storage in out nocopy pl_request_headers
+                      , headers_storage in out nocopy pl_requests_http_headers
                       , append          in            boolean
                                                       default false )
   is
   begin
     if headers_storage is null
     then
-      headers_storage := pl_request_headers();
+      headers_storage := pl_requests_http_headers();
     end if;
     
     if headers_storage.count > 0
@@ -205,7 +205,7 @@ is
     end if;
     
     headers_storage.extend();
-    headers_storage(headers_storage.last) := pl_request_header( "NAME"  => name
+    headers_storage(headers_storage.last) := pl_requests_http_header( "NAME"  => name
                                                               , "VALUE" => substrb( val, 1, 4000 ) );
   end set_header;
   
@@ -216,7 +216,7 @@ is
    * @return header value or null if not found or uninitialized
    */
   function get_header( name            in            varchar2
-                     , headers_storage in pl_request_headers )
+                     , headers_storage in pl_requests_http_headers )
                        return varchar2
   is
     c_name constant varchar2(256) := name;
@@ -247,12 +247,12 @@ is
    * @param r (default null) right storage
    * @return merged storage
    */
-  function merge_headers( l in pl_request_headers
-                        , r in pl_request_headers
+  function merge_headers( l in pl_requests_http_headers
+                        , r in pl_requests_http_headers
                                default null )
-                          return pl_request_headers
+                          return pl_requests_http_headers
   is
-    headers pl_request_headers;
+    headers pl_requests_http_headers;
   begin
     if r is null or r.count = 0
     then
@@ -280,7 +280,7 @@ is
        where not exists ( select 't' from lh
                            where upper( lh."NAME" ) = upper( rh."NAME" ) )
     )
-    select pl_request_header( merged."NAME", merged."VALUE" )
+    select pl_requests_http_header( merged."NAME", merged."VALUE" )
       bulk collect into headers
       from merged
      where merged."VALUE" is not null;

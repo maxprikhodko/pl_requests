@@ -5,8 +5,8 @@ prompt -- Installing PL_REQUESTS --;
 prompt ----------------------------;
 
 -- Common types
-@@src/types/pl_request_header.typ
-@@src/types/pl_request_headers.typ
+@@src/types/pl_requests_http_header.typ
+@@src/types/pl_requests_http_headers.typ
 
 -- Specs
 @@src/packages/pl_requests_helpers.pks

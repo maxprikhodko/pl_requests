@@ -44,7 +44,7 @@ is
    */
   member procedure request( method      in            varchar2
                           , url         in            varchar2
-                          , headers     in out nocopy pl_request_headers
+                          , headers     in out nocopy pl_requests_http_headers
                           , status      in out nocopy number
                           , body        in out nocopy pljson
                           , data        in            clob
@@ -55,7 +55,7 @@ is
                                                       default null
                           , chunked     in            boolean
                                                       default null
-                          , req_headers in            pl_request_headers
+                          , req_headers in            pl_requests_http_headers
                                                       default null )
   is
     l_body clob;
@@ -105,7 +105,7 @@ is
                                                       default null
                           , chunked     in            boolean
                                                       default null
-                          , req_headers in            pl_request_headers
+                          , req_headers in            pl_requests_http_headers
                                                       default null )
   is
     l_body clob;
@@ -146,7 +146,7 @@ is
    */
   member procedure request( method      in            varchar2
                           , url         in            varchar2
-                          , headers     in out nocopy pl_request_headers
+                          , headers     in out nocopy pl_requests_http_headers
                           , status      in out nocopy number
                           , body        in out nocopy pljson
                           , data        in            pljson
@@ -154,7 +154,7 @@ is
                                                       default null
                           , chunked     in            boolean
                                                       default null
-                          , req_headers in            pl_request_headers
+                          , req_headers in            pl_requests_http_headers
                                                       default null )
   is
     l_data clob := null;
@@ -211,7 +211,7 @@ is
                                                       default null
                           , chunked     in            boolean
                                                       default null
-                          , req_headers in            pl_request_headers
+                          , req_headers in            pl_requests_http_headers
                                                       default null )
   is
     l_data clob := null;

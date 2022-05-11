@@ -27,12 +27,12 @@ is
    */
   procedure request( method      in            varchar2
                    , url         in            varchar2
-                   , res_headers in out nocopy pl_request_headers
+                   , res_headers in out nocopy pl_requests_http_headers
                    , res_status  in out nocopy number
                    , res_body    in out nocopy clob
                    , req_data    in            clob
                                                default null
-                   , req_headers in            pl_request_headers
+                   , req_headers in            pl_requests_http_headers
                                                default null
                    , charset     in            varchar2
                                                default gc_DEFAULT_CHARSET
@@ -62,7 +62,7 @@ is
                    , res_body    in out nocopy clob
                    , req_data    in            clob
                                                default null
-                   , req_headers in            pl_request_headers
+                   , req_headers in            pl_requests_http_headers
                                                default null
                    , charset     in            varchar2
                                                default gc_DEFAULT_CHARSET
@@ -89,12 +89,12 @@ is
    */
   procedure request( method      in            varchar2
                    , url         in            varchar2
-                   , res_headers in out nocopy pl_request_headers
+                   , res_headers in out nocopy pl_requests_http_headers
                    , res_status  in out nocopy number
                    , res_body    in out nocopy varchar2
                    , req_data    in            varchar2
                                                default null
-                   , req_headers in            pl_request_headers
+                   , req_headers in            pl_requests_http_headers
                                                default null
                    , charset     in            varchar2
                                                default gc_DEFAULT_CHARSET
@@ -124,7 +124,7 @@ is
                    , res_body    in out nocopy varchar2
                    , req_data    in            varchar2
                                                default null
-                   , req_headers in            pl_request_headers
+                   , req_headers in            pl_requests_http_headers
                                                default null
                    , charset     in            varchar2
                                                default gc_DEFAULT_CHARSET
@@ -141,7 +141,7 @@ is
    * @param headers destination headers collection
    */
   procedure get_headers( res     in out nocopy utl_http.resp
-                       , headers in out nocopy pl_request_headers );
+                       , headers in out nocopy pl_requests_http_headers );
   
   /**
    * Reads response body into a clob variable
@@ -180,7 +180,7 @@ is
    * @param ignore_list (default true) do not set headers from ignore list
    */
   procedure set_headers( req         in out nocopy utl_http.req
-                       , headers     in            pl_request_headers
+                       , headers     in            pl_requests_http_headers
                        , ignore_list in            boolean
                                                    default true );
 
