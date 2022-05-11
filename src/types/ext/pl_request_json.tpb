@@ -11,7 +11,9 @@ is
                                       , chunked         boolean
                                                         default false
                                       , mime_type       varchar2
-                                                        default 'text/plain' )
+                                                        default 'text/plain'
+                                      , headers         pl_requests_http_headers
+                                                        default null )
                                         return self as result
   is
   begin
@@ -26,6 +28,11 @@ is
     self.charset   := nvl( charset, pl_requests.DEFAULT_CHARSET );
     self.chunked   := ( case when chunked then 'T' else 'F' end );
     self.mime_type := mime_type;
+
+    if headers is not null and headers.count > 0
+    then
+      self.headers := headers;
+    end if;
     return;
   end pl_request_json;
 

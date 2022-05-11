@@ -1,5 +1,5 @@
 create or replace
-type pl_request is object
+type pl_request force is object
 (
     base_url        varchar2(2048)
   , wallet_path     varchar2(2048)
@@ -19,7 +19,9 @@ type pl_request is object
                                    , chunked         boolean
                                                      default false
                                    , mime_type       varchar2
-                                                     default 'text/plain' )
+                                                     default 'text/plain'
+                                   , headers         pl_requests_http_headers
+                                                     default null )
                                      return self as result
     /**
      * Returns global header for stored request

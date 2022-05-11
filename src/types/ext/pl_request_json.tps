@@ -10,7 +10,9 @@ type pl_request_json under pl_request (
                                         , chunked         boolean
                                                           default false
                                         , mime_type       varchar2
-                                                          default 'text/plain' )
+                                                          default 'text/plain'
+                                        , headers         pl_requests_http_headers
+                                                          default null )
                                           return self as result
 
     /**
