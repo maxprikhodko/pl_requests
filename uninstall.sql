@@ -5,6 +5,8 @@ prompt -- Uninstalling PL_REQUESTS --;
 prompt ------------------------------;
 
 declare
+  g_schema constant varchar2(64) := sys_context( 'userenv', 'current_schema' );
+
   cursor cur_extensions
   is
     select do.object_name
@@ -15,7 +17,7 @@ declare
            do.object_name
            as stmnt
       from dba_objects do 
-     where do."OWNER"     = user
+     where do."OWNER"     = g_schema
        and do.object_type = any ( 'TYPE', 'PACKAGE', 'TYPE BODY', 'PACKAGE BODY' )
        and do.object_name = any ( 'PL_REQUEST_JSON' )
     order by decode( do.object_type
