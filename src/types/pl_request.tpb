@@ -367,5 +367,101 @@ is
       end if;
       raise;
   end request;
+
+  /**
+   * Executes HTTP request and returns response body if response status matches the expected.
+   * Response body must not exceed 4000 bytes.
+   * Returns null if any exception occures.
+   * @param url relative url
+   * @param status (default '2xx') expected response status mask
+   * @param method (default 'GET') http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+   * @param alt (default null) alternative message to be returned if response status does not match the expected
+   * @param data (default null) request data to send in body
+   * @param mime_type (default null) mime type to be specified in content-type header for request data
+   * @param charset (default null) charset to be used for request and response bodies
+   * @param chunked (default null) 'T'=true, 'F'=false - force Transfer-Encoding: chunked
+   * @param req_headers (default null) additional http headers
+   * @return response body string
+   */
+  member function fetch_response( url         in varchar2
+                                , status      in varchar2
+                                                 default '2xx'
+                                , method      in varchar2
+                                                 default 'GET'
+                                , alt         in varchar2
+                                                 default null
+                                , data        in varchar2
+                                                 default null
+                                , mime_type   in varchar2
+                                                 default null
+                                , charset     in varchar2
+                                                 default null
+                                , chunked     in varchar2
+                                                 default null 
+                                , req_headers in pl_requests_http_headers
+                                                 default null )
+                                  return varchar2
+  is
+    ctx            utl_http.request_context_key := null;
+    l_headers      pl_requests_http_headers;
+    l_chunked      varchar2(2);
+    l_status_match varchar2(16);
+    res_status     number;
+    res_body       varchar2(4000);
+  begin
+    if not regexp_like( nvl(status, '2xx'), '^[1-5][0-9X]{2}$', 'i' )
+    then
+      return null;  -- Invalid call parameter
+    end if;
+
+    l_status_match := '^' || replace( upper(nvl(status, '2xx')), 'X', '[0-9]' ) || '$';
+    l_chunked      := coalesce( chunked, self.chunked );
+
+    if  self.wallet_path is not null 
+    and self.wallet_password is not null
+    then
+      ctx := utl_http.create_request_context( wallet_path     => self.wallet_path
+                                            , wallet_password => self.wallet_password );
+    end if;
+
+    if  req_headers is not null
+    and req_headers.count > 0
+    then
+      l_headers := pl_requests_helpers.merge_headers( self.headers, req_headers );
+    else
+      l_headers := self.headers;
+    end if;
+    
+    pl_requests.request( method      => method
+                       , url         => self.resolve( url )
+                       , req_headers => l_headers
+                       , req_data    => data
+                       , res_status  => res_status
+                       , res_body    => res_body
+                       , ctx         => ctx
+                       , charset     => coalesce( charset, self.charset, pl_requests.DEFAULT_CHARSET )
+                       , chunked     => ( case when l_chunked = 'T' then true else false end )
+                       , mime_type   => coalesce( mime_type, self.mime_type ) );
+
+    if ctx is not null
+    then
+      utl_http.destroy_request_context( ctx );
+    end if;
+    
+    return (
+      case 
+        when regexp_like( to_char(res_status), l_status_match, 'i' )
+          then res_body
+        else alt
+      end
+    );
+  exception
+    when OTHERS then
+      if ctx is not null
+      then
+        utl_http.destroy_request_context( ctx );
+      end if;
+      return null;
+  end fetch_response;
 end;
 /

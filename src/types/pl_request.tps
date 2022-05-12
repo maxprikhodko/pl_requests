@@ -159,5 +159,39 @@ type pl_request force is object
                                                         default null
                             , req_headers in            pl_requests_http_headers
                                                         default null )
+   
+   /**
+    * Executes HTTP request and returns response body if response status matches the expected.
+    * Response body must not exceed 4000 bytes.
+    * Returns null if any exception occures.
+    * @param url relative url
+    * @param status (default '2xx') expected response status mask
+    * @param method (default 'GET') http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+    * @param alt (default null) alternative message to be returned if response status does not match the expected
+    * @param data (default null) request data to send in body
+    * @param mime_type (default null) mime type to be specified in content-type header for request data
+    * @param charset (default null) charset to be used for request and response bodies
+    * @param chunked (default null) 'T'=true, 'F'=false - force Transfer-Encoding: chunked
+    * @param req_headers (default null) additional http headers
+    * @return response body string
+    */
+  , member function fetch_response( url         in varchar2
+                                  , status      in varchar2
+                                                   default '2xx'
+                                  , method      in varchar2
+                                                   default 'GET'
+                                  , alt         in varchar2
+                                                   default null
+                                  , data        in varchar2
+                                                   default null
+                                  , mime_type   in varchar2
+                                                   default null
+                                  , charset     in varchar2
+                                                   default null
+                                  , chunked     in varchar2
+                                                   default null 
+                                  , req_headers in pl_requests_http_headers
+                                                   default null )
+                                    return varchar2
 ) not final
 /
