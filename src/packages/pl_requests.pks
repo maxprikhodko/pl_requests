@@ -12,6 +12,36 @@ is
   function DEFAULT_CHARSET return varchar2;
 
   /**
+   * Fetch response object from url. Fetched response MUST be closed manually.
+   * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+   * @param url target url
+   * @param opened output flag indicating if response is currently opened
+   * @param headers (default null) request headers to be set
+   * @param data (default null) request data clob to be sent in body
+   * @param charset (default 'UTF-8') charset to be used for request body
+   * @param chunked (default false) force Transfer-Encoding: chunked
+   * @param mime_type (default 'text/plain') mime type to be specified in content-type header for request data
+   * @param ctx (default null) request context key
+   * @return utl_http.resp response object
+   */
+  function fetch_url( method    in            varchar2
+                    , url       in            varchar2
+                    , opened    in out nocopy boolean
+                    , headers   in            pl_requests_http_headers
+                                              default null
+                    , data      in            clob
+                                              default null
+                    , charset   in            varchar2
+                                              default gc_DEFAULT_CHARSET
+                    , chunked   in            boolean
+                                              default false
+                    , mime_type in            varchar2
+                                              default null
+                    , ctx       in            utl_http.request_context_key
+                                              default null )
+                      return utl_http.resp;
+
+  /**
    * Executes http request
    * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
    * @param url target url
