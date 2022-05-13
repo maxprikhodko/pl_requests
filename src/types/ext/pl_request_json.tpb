@@ -253,5 +253,139 @@ is
       end if;
       raise;
   end request;
+
+
+  /**
+   * Executes HTTP request and returns response JSON body if response status matches the expected.
+   * Returns null if any exception occures.
+   * @param url relative url
+   * @param status (default '2xx') expected response status mask
+   * @param method (default 'GET') http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+   * @param alt (default null) alternative JSON body to be returned if response status does not match the expected
+   * @param data (default null) request data clob to send in body
+   * @param mime_type (default null) mime type to be specified in content-type header for request data
+   * @param charset (default null) charset to be used for request and response bodies
+   * @param chunked (default null) 'T'=true, 'F'=false - force Transfer-Encoding: chunked
+   * @param req_headers (default null) additional http headers
+   * @return response body JSON
+   */
+  member function fetch_json( url         in varchar2
+                            , status      in varchar2
+                                             default '2xx'
+                            , method      in varchar2
+                                             default 'GET'
+                            , alt         in pljson
+                                             default null
+                            , data        in clob
+                                             default null
+                            , mime_type   in varchar2
+                                             default null
+                            , charset     in varchar2
+                                             default null
+                            , chunked     in varchar2
+                                             default null
+                            , req_headers in pl_requests_http_headers
+                                             default null )
+                              return pljson
+  is
+    l_expected boolean := false;
+    l_body     clob;
+    l_ret      pljson;
+  begin
+    dbms_lob.createTemporary( lob_loc => l_body
+                            , cache   => true
+                            , dur     => dbms_lob.CALL );
+    
+    (self as pl_request).fetch_clob( body        => l_body
+                                   , expected    => l_expected
+                                   , url         => url
+                                   , status      => status
+                                   , method      => method
+                                   , data        => data
+                                   , mime_type   => mime_type
+                                   , charset     => charset
+                                   , chunked     => chunked
+                                   , req_headers => req_headers );
+    l_ret := (
+      case 
+        when l_expected is null 
+          then null 
+        when l_expected 
+          then pljson( l_body )
+        else alt
+      end
+    );
+    dbms_lob.freeTemporary( l_body );
+    return l_ret;
+  exception
+    when OTHERS then
+      dbms_lob.freeTemporary( l_body );
+      return null;
+  end fetch_json;
+
+  /**
+   * Executes HTTP request and returns response JSON body if response status matches the expected.
+   * Returns null if any exception occures.
+   * @param url relative url
+   * @param status (default '2xx') expected response status mask
+   * @param method (default 'GET') http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+   * @param alt (default null) alternative JSON body to be returned if response status does not match the expected
+   * @param data (default null) request data JSON to send in body
+   * @param charset (default null) charset to be used for request and response bodies
+   * @param chunked (default null) 'T'=true, 'F'=false - force Transfer-Encoding: chunked
+   * @param req_headers (default null) additional http headers
+   * @return response body JSON
+   */
+  member function fetch_json( url         in varchar2
+                            , status      in varchar2
+                                             default '2xx'
+                            , method      in varchar2
+                                             default 'GET'
+                            , alt         in pljson
+                                             default null
+                            , data        in pljson
+                            , charset     in varchar2
+                                             default null
+                            , chunked     in varchar2
+                                             default null
+                            , req_headers in pl_requests_http_headers
+                                             default null )
+                              return pljson
+  is
+    l_data clob := null;
+    l_ret  pljson;
+  begin
+    if data is not null
+    then
+      dbms_lob.createTemporary( lob_loc => l_data
+                              , cache   => true
+                              , dur     => dbms_lob.CALL );
+      data.to_clob( l_data );
+    end if;
+
+    l_ret := self.fetch_json( url         => url
+                            , status      => status
+                            , method      => method
+                            , alt         => alt
+                            , data        => l_data
+                            , mime_type   => 'application/json'
+                            , charset     => charset
+                            , chunked     => chunked
+                            , req_headers => req_headers );
+
+    if l_data is not null
+    then
+      dbms_lob.freeTemporary( l_data );
+    end if;
+
+    return l_ret;
+  exception
+    when OTHERS then
+      if l_data is not null
+      then
+        dbms_lob.freeTemporary( l_data );
+      end if;
+      return null;
+  end fetch_json;
 end;
 /
