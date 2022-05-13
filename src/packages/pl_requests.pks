@@ -1,8 +1,16 @@
 create or replace
 package pl_requests
 is
+  /**
+   * <p>Base utl_http wrappers for working with requests and responses</p>
+   * @headcom
+   */
+
+  /** Global default charset */
   gc_DEFAULT_CHARSET constant varchar2(32) := 'UTF-8';
+  /** 32K chunk */
   gc_CHUNK_MAX_BYTES constant number       := 32767;
+  /** Default read chunk size */
   gc_CHUNK_SIZE      constant number       := 32767;
 
   /**

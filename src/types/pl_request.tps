@@ -1,14 +1,38 @@
 create or replace
 type pl_request force is object
 (
+    /**
+     * <p>Defines a HTTP-service based settings container for building HTTP requests in PLSQL code. 
+     * Instance of this object is something like <code>axios.create()</code> in nodejs axios package.</p>
+     * @headcom
+     */
+   
+    /** Base url for all child requests */
     base_url        varchar2(2048)
+    /** Wallet path (used for request context creation) */
   , wallet_path     varchar2(2048)
+    /** Wallet password (used for request context creation) */
   , wallet_password varchar2(2048)
+    /** HTTP headers set for every child request by default */
   , headers         pl_requests_http_headers
+    /** HTTP headers set for every child request by default */
   , charset         varchar2(32)
+    /** Default setting for forcing Transfer-Encoding: chunked by default */
   , chunked         varchar2(1 byte)
+    /** Default mime type to be set for child requests data */
   , mime_type       varchar2(512)
 
+    /**
+     * Creates a configured http service access instance
+     * @param base_url base url
+     * @param wallet_path (default null) wallet path
+     * @param wallet_password (default null) wallet password
+     * @param charset (default null) charset to be used by all child requests by default
+     * @param chunked (default null) force Transfer-Encoding: chunked by default
+     * @param mime_type (default 'plain/text') default mime type to be set for requests data
+     * @param headers (default null) headers to be sent with all child requests
+     * @return pl_request instance (configured http service access instance)
+     */
   , constructor function pl_request( base_url        varchar2
                                    , wallet_path     varchar2
                                                      default null

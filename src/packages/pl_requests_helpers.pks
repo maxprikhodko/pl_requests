@@ -1,9 +1,18 @@
 create or replace
 package pl_requests_helpers
 is
+  /**
+   * <p>Base pl_requests utilities.</p>
+   * @headcom
+   */
+  
+  /** URL protocol regexp group index */
   gc_PROTOCOL constant number := 2;
+  /** URL host regexp group index */
   gc_HOST     constant number := 3;
+  /** URL path regexp group index */
   gc_PATH     constant number := 4;
+  /** URL query regexp group index */
   gc_QUERY    constant number := 5;
 
   /**

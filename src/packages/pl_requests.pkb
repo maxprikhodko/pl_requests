@@ -1,6 +1,7 @@
 create or replace
 package body pl_requests
 is
+  /** Current database charset */
   g_DB_CHARSET nls_database_parameters."VALUE"%TYPE;
 
   /**

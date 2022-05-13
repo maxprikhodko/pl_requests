@@ -1,5 +1,23 @@
 create or replace 
 type pl_request_json under pl_request (
+    /**
+     * <p>Defines an extension for pl_request instance which can work with
+     * json data automatically. Depends on PLJSON objects and API.</p>
+     * @headcom
+     */
+
+
+    /**
+     * Creates a configured http service access instance
+     * @param base_url base url
+     * @param wallet_path (default null) wallet path
+     * @param wallet_password (default null) wallet password
+     * @param charset (default null) charset to be used by all child requests by default
+     * @param chunked (default null) force Transfer-Encoding: chunked by default
+     * @param mime_type (default 'plain/text') default mime type to be set for requests data
+     * @param headers (default null) headers to be sent with all child requests
+     * @return pl_request instance (configured http service access instance)
+     */
     constructor function pl_request_json( base_url        varchar2
                                         , wallet_path     varchar2
                                                           default null
