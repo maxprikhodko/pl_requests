@@ -369,8 +369,121 @@ is
   end request;
 
   /**
+   * Executes http request. Fetches response body if response status matches the expected.
+   * @param body output response body clob
+   * @param expected output flag indicating if response status code matches the expected status mask. Null is set on exceptions
+   * @param url relative url
+   * @param status (default '2xx') expected response status mask. If set to null, any response status code is valid
+   * @param method (default 'GET') http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+   * @param data (default null) request data to send in body
+   * @param mime_type (default null) mime type to be specified in content-type header for request data
+   * @param charset (default null) charset to be used for request and response bodies
+   * @param chunked (default null) 'T'=true, 'F'=false - force Transfer-Encoding: chunked
+   * @param req_headers (default null) additional http headers
+   */
+  member procedure fetch_clob( self        in            pl_request
+                             , body        in out nocopy clob
+                             , expected    in out nocopy boolean
+                             , url         in            varchar2
+                             , status      in            varchar2
+                                                         default '2xx'
+                             , method      in            varchar2
+                                                         default 'GET'
+                             , data        in            clob
+                                                         default null
+                             , mime_type   in            varchar2
+                                                         default null
+                             , charset     in            varchar2
+                                                         default null
+                             , chunked     in            varchar2
+                                                         default null
+                             , req_headers in            pl_requests_http_headers
+                                                         default null )
+  is
+    ctx               utl_http.request_context_key := null;
+    res               utl_http.resp;
+    l_headers         pl_requests_http_headers;
+    l_expected_status varchar2(32);
+    l_status          number;
+    l_chunked         boolean;
+    l_opened          boolean := false;
+  begin
+    expected := null;
+
+    if status is null  -- Any status
+    then
+      l_expected_status := '^[1-5][0-9]{2}$';
+    elsif regexp_like( status, '^[1-5][0-9x]{2}$', 'i' ) 
+    then
+      l_expected_status := '^' || replace( upper(status), 'X', '[0-9]' ) || '$';
+    else -- Invalid parameter - return without execution
+      return;
+    end if;
+
+    l_chunked := coalesce(
+        ( case when chunked = 'T' then true when chunked = 'F' then false else null end )
+      , ( case when self.chunked = 'T' then true when self.chunked = 'F' then false else null end )
+      , false
+    );
+
+    if req_headers is not null and req_headers.count > 0
+    then
+      l_headers := pl_requests_helpers.merge_headers( self.headers, req_headers );
+    else
+      l_headers := self.headers;
+    end if;
+
+    if  self.wallet_path is not null 
+    and self.wallet_password is not null
+    then
+      ctx := utl_http.create_request_context( wallet_path     => self.wallet_path
+                                            , wallet_password => self.wallet_password );
+    end if;
+
+    res := pl_requests.fetch_url( method    => method
+                                , url       => self.resolve( url )
+                                , opened    => l_opened
+                                , headers   => l_headers
+                                , data      => data
+                                , charset   => coalesce( charset, self.charset, pl_requests.DEFAULT_CHARSET )
+                                , chunked   => l_chunked
+                                , mime_type => coalesce( mime_type, self.mime_type )
+                                , ctx       => ctx );
+    l_status := res.status_code;
+    expected := regexp_like( to_char(l_status), l_expected_status, 'i' );
+
+    if expected
+    then
+      pl_requests.get_body( res     => res
+                          , body    => body
+                          , charset => coalesce( charset, self.charset, pl_requests.DEFAULT_CHARSET ) );
+    end if;
+
+    utl_http.end_response( res );
+    l_opened := false;
+
+    if ctx is not null
+    then
+      utl_http.destroy_request_context( ctx );
+      ctx := null;
+    end if;
+  exception
+    when OTHERS then
+      if l_opened
+      then
+        begin utl_http.end_response( res ); exception when OTHERS then null; end;
+      end if;
+
+      if ctx is not null
+      then
+        utl_http.destroy_request_context( ctx );
+      end if;
+      raise;
+  end fetch_clob;
+
+  /**
    * Executes HTTP request and returns response body if response status matches the expected.
-   * Response body must not exceed 4000 bytes.
+   * Response body must not exceed 4000 bytes, otherwise it will be cut to fit buffer.
    * Returns null if any exception occures.
    * @param url relative url
    * @param status (default '2xx') expected response status mask
@@ -402,65 +515,40 @@ is
                                                  default null )
                                   return varchar2
   is
-    ctx            utl_http.request_context_key := null;
-    l_headers      pl_requests_http_headers;
-    l_chunked      varchar2(2);
-    l_status_match varchar2(16);
-    res_status     number;
-    res_body       varchar2(4000);
+    l_expected boolean;
+    l_body     clob;
+    l_ret      varchar2(4000);
   begin
-    if not regexp_like( nvl(status, '2xx'), '^[1-5][0-9X]{2}$', 'i' )
-    then
-      return null;  -- Invalid call parameter
-    end if;
+    dbms_lob.createTemporary( lob_loc => l_body
+                            , cache   => true
+                            , dur     => dbms_lob.CALL );
 
-    l_status_match := '^' || replace( upper(nvl(status, '2xx')), 'X', '[0-9]' ) || '$';
-    l_chunked      := coalesce( chunked, self.chunked );
+    self.fetch_clob( body        => l_body
+                   , expected    => l_expected
+                   , url         => url
+                   , status      => status
+                   , method      => method
+                   , data        => to_clob( data )
+                   , mime_type   => mime_type
+                   , charset     => charset
+                   , chunked     => chunked
+                   , req_headers => req_headers );
 
-    if  self.wallet_path is not null 
-    and self.wallet_password is not null
-    then
-      ctx := utl_http.create_request_context( wallet_path     => self.wallet_path
-                                            , wallet_password => self.wallet_password );
-    end if;
-
-    if  req_headers is not null
-    and req_headers.count > 0
-    then
-      l_headers := pl_requests_helpers.merge_headers( self.headers, req_headers );
-    else
-      l_headers := self.headers;
-    end if;
-    
-    pl_requests.request( method      => method
-                       , url         => self.resolve( url )
-                       , req_headers => l_headers
-                       , req_data    => data
-                       , res_status  => res_status
-                       , res_body    => res_body
-                       , ctx         => ctx
-                       , charset     => coalesce( charset, self.charset, pl_requests.DEFAULT_CHARSET )
-                       , chunked     => ( case when l_chunked = 'T' then true else false end )
-                       , mime_type   => coalesce( mime_type, self.mime_type ) );
-
-    if ctx is not null
-    then
-      utl_http.destroy_request_context( ctx );
-    end if;
-    
-    return (
+    l_ret := (
       case 
-        when regexp_like( to_char(res_status), l_status_match, 'i' )
-          then res_body
+        when l_expected is null 
+          then null
+        when l_expected 
+          then substrb( dbms_lob.substr( l_body, 4000, 1 ), 1, 4000 )
         else alt
       end
     );
+
+    dbms_lob.freeTemporary( l_body );
+    return l_ret;
   exception
     when OTHERS then
-      if ctx is not null
-      then
-        utl_http.destroy_request_context( ctx );
-      end if;
+      dbms_lob.freeTemporary( l_body );
       return null;
   end fetch_response;
 end;
