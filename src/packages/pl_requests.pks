@@ -20,6 +20,21 @@ is
   function DEFAULT_CHARSET return varchar2;
 
   /**
+   * Get current session global wallet configured with <code>pl_requests.current_wallet</code> procedure
+   * @return current wallet path or null if was not set
+   */
+  function session_wallet return varchar2;
+
+  /**
+   * Sets session global wallet with <code>UTL_HTTP.SET_WALLET</code>
+   * @param wallet_path Oracle wallet path
+   * @param wallet_password (default null) Oracle wallet password
+   */
+  procedure session_wallet( wallet_path     in varchar2
+                          , wallet_password in varchar2
+                                               default null );
+
+  /**
    * Fetch response object from url. Fetched response MUST be closed manually.
    * @param method http method (GET, POST, PUT, PATCH, DELETE, OPTIONS)
    * @param url target url

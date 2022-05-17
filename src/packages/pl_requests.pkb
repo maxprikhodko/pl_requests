@@ -3,6 +3,8 @@ package body pl_requests
 is
   /** Current database charset */
   g_DB_CHARSET nls_database_parameters."VALUE"%TYPE;
+  /** Current wallet path configured with current_wallet procedure */
+  g_SESSION_WALLET_PATH varchar2(2048);
 
   /**
    * Get default charset
@@ -13,6 +15,31 @@ is
   begin
     return gc_DEFAULT_CHARSET;
   end DEFAULT_CHARSET;
+
+  /**
+   * Get current session global wallet configured with <code>pl_requests.current_wallet</code> procedure
+   * @return current wallet path or null if was not set
+   */
+  function session_wallet return varchar2
+  is
+  begin
+    return g_SESSION_WALLET_PATH;
+  end session_wallet;
+
+  /**
+   * Sets session global wallet with <code>UTL_HTTP.SET_WALLET</code>
+   * @param wallet_path Oracle wallet path
+   * @param wallet_password (default null) Oracle wallet password
+   */
+  procedure session_wallet( wallet_path     in varchar2
+                          , wallet_password in varchar2
+                                               default null )
+  is
+  begin
+    utl_http.set_wallet( path     => wallet_path
+                       , password => wallet_password );
+    g_SESSION_WALLET_PATH := wallet_path;
+  end session_wallet;
 
   /**
    * Converts custom charset alias to specific character set to be used
