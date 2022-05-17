@@ -13,6 +13,14 @@ Please note that usage of this lib is relied on input/output parameter types, sp
 
 Documentation on units not provided in [docs](./docs) can be found in source files (look for pldoc comments).
 
+### Setting Wallet
+
+Wallet configuration will be needed for communication with HTTPS servers. For this toolset it can be set with 3 approaches:
+
+1. With `UTL_HTTP.SET_WALLET( path in varchar2, password in varchar2 default null )` procedure. Wallet will be set for all current session requests. Setting `wallet_path` and `wallet_password` properties for `pl_request` instance **won't be needed while current session global wallet is valid for communication with configured service**. 
+2. With `pl_requests.session_wallet( wallet_path in varchar2, wallet_password in varchar2 default null )` procedure. It does the same work as first approach, but you will be able to get recent wallet path set with this procedure with `pl_requests.session_wallet return varchar2` function. Setting `wallet_path` and `wallet_password` properties for `pl_request` instance **won't be needed while current session global wallet is valid for communication with configured service**. 
+3. With configuring `wallet_path` and `wallet_password` (optional) properties during creation of `pl_request` instance. If `wallet_path` was provided, each request will create local request context with `UTL_HTTP.CREATE_REQUEST_CONTEXT` and destroy it with `UTL_HTTP.DESTROY_REQUEST_CONTEXT` after completion.
+
 ### Base functionality
 
 ``` sql
