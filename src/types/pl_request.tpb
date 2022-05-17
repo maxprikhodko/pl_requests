@@ -30,7 +30,7 @@ is
   begin
     self.base_url := base_url;
 
-    if wallet_path is not null and wallet_password is not null
+    if wallet_path is not null 
     then
       self.wallet_path     := wallet_path;
       self.wallet_password := wallet_password;
@@ -123,8 +123,7 @@ is
     status := null;
     body   := null;
 
-    if  self.wallet_path is not null 
-    and self.wallet_password is not null
+    if self.wallet_path is not null 
     then
       ctx := utl_http.create_request_context( wallet_path     => self.wallet_path
                                             , wallet_password => self.wallet_password );
@@ -196,8 +195,7 @@ is
     status := null;
     body   := null;
 
-    if  self.wallet_path is not null 
-    and self.wallet_password is not null
+    if self.wallet_path is not null 
     then
       ctx := utl_http.create_request_context( wallet_path     => self.wallet_path
                                             , wallet_password => self.wallet_password );
@@ -269,8 +267,7 @@ is
   begin
     status := null;
 
-    if  self.wallet_path is not null 
-    and self.wallet_password is not null
+    if self.wallet_path is not null 
     then
       ctx := utl_http.create_request_context( wallet_path     => self.wallet_path
                                             , wallet_password => self.wallet_password );
@@ -340,8 +337,7 @@ is
   begin
     status := null;
 
-    if  self.wallet_path is not null 
-    and self.wallet_password is not null
+    if self.wallet_path is not null 
     then
       ctx := utl_http.create_request_context( wallet_path     => self.wallet_path
                                             , wallet_password => self.wallet_password );
@@ -444,8 +440,7 @@ is
       l_headers := self.headers;
     end if;
 
-    if  self.wallet_path is not null 
-    and self.wallet_password is not null
+    if self.wallet_path is not null 
     then
       ctx := utl_http.create_request_context( wallet_path     => self.wallet_path
                                             , wallet_password => self.wallet_password );

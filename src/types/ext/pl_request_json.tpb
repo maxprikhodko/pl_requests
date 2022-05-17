@@ -30,7 +30,7 @@ is
   begin
     self.base_url := base_url;
 
-    if wallet_path is not null and wallet_password is not null
+    if wallet_path is not null 
     then
       self.wallet_path     := wallet_path;
       self.wallet_password := wallet_password;
